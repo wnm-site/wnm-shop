@@ -219,6 +219,7 @@ export default function AdminProducts() {
   const openEdit = (product) => {
     setForm({
       ...product,
+      images: product.images || [],
       sizes: product.sizes || [],
       colors: product.colors || []
     });
