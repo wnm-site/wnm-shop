@@ -1,6 +1,5 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import ProductDetail from './pages/ProductDetail';
 import Products from './pages/Products';
@@ -22,6 +21,7 @@ import AdminReviews from './pages/admin/AdminReviews';
 import AdminCoupons from './pages/admin/AdminCoupons';
 import AdminLayout from './components/admin/AdminLayout';
 import UserLayout from './components/UserLayout';
+import ScrollToTop from './components/ScrollToTop';
 import { useAuth } from './context/AuthContext';
 import { Spinner } from 'react-bootstrap';
 import Footer from './components/Footer';
@@ -47,6 +47,7 @@ export default function App() {
 
   return (
     <div className="d-flex flex-column min-vh-100">
+      <ScrollToTop />
       {!isUserRoute && !isAdminRoute && <Navbar />}
       <div className="flex-grow-1">
         <Routes>

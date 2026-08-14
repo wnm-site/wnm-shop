@@ -3,8 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { doc, getDoc, setDoc, collection, addDoc, query, where, getDocs, arrayUnion } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
-import { Row, Col, Button, Form, Spinner, ListGroup, Card, Badge } from 'react-bootstrap';
-import { FiMinus, FiPlus, FiShoppingCart, FiZap, FiArrowLeft, FiStar, FiHeart, FiZoomIn } from 'react-icons/fi';
+import { Row, Col, Button, Form, Spinner, ListGroup, Badge } from 'react-bootstrap';
+import { FiMinus, FiPlus, FiShoppingCart, FiZap, FiArrowLeft, FiStar, FiZoomIn } from 'react-icons/fi';
 import { FaWhatsapp, FaFacebook, FaTwitter, FaTelegram, FaLink } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { getProductImages, getProductImageSrc } from '../utils/imageHelper';
@@ -84,11 +84,19 @@ export default function ProductDetail() {
   const submitReview = async (e) => {
     e.preventDefault();
     if (!user) return toast.error('Login first');
+    if (!reviewText.trim() || reviewText.trim().length < 5) {
+      toast.error('Review must be at least 5 characters');
+      return;
+    }
+    if (rating < 1 || rating > 5) {
+      toast.error('Please select a valid rating');
+      return;
+    }
     await addDoc(collection(db, 'reviews'), {
       productId: id,
       userId: user.uid,
       userName: user.email.split('@')[0],
-      text: reviewText,
+      text: reviewText.trim(),
       rating,
       createdAt: new Date()
     });

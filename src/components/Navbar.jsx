@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { FiShoppingCart, FiHeart, FiUser, FiLogOut, FiPackage, FiShield, FiMenu, FiX, FiSettings, FiSearch, FiHome } from 'react-icons/fi';
+import { FiShoppingCart, FiHeart, FiUser, FiLogOut, FiPackage, FiShield, FiMenu, FiX, FiSearch, FiHome } from 'react-icons/fi';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 import { useAuth } from '../context/AuthContext';
@@ -10,7 +10,7 @@ import toast from 'react-hot-toast';
 import { Badge, Dropdown } from 'react-bootstrap'; // ← Import Dropdown
 
 export default function Navbar() {
-  const { user, userData, loading } = useAuth();
+  const { user, userData } = useAuth();
   const navigate = useNavigate();
   const [cartCount, setCartCount] = useState(0);
   const [wishlistCount, setWishlistCount] = useState(0);
@@ -18,8 +18,6 @@ export default function Navbar() {
 
   useEffect(() => {
     if (!user) {
-      setCartCount(0);
-      setWishlistCount(0);
       return;
     }
 
@@ -44,7 +42,7 @@ export default function Navbar() {
       await signOut(auth);
       toast.success('Logged out successfully');
       navigate('/');
-    } catch (error) {
+    } catch {
       toast.error('Logout failed');
     }
     setMobileMenuOpen(false);
@@ -64,11 +62,13 @@ export default function Navbar() {
           className="navbar-toggler border-0"
           type="button"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle navigation"
+          aria-expanded={mobileMenuOpen}
         >
           {mobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
         </button>
 
-        <div className="collapse navbar-collapse" id="navbarNav">
+        <div className={`collapse navbar-collapse ${mobileMenuOpen ? 'show' : ''}`} id="navbarNav">
           <ul className="navbar-nav mx-auto">
             <li className="nav-item">
               <Link className="nav-link px-3" to="/">Home</Link>

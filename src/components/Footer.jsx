@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
-import { FiMail, FiPhone, FiMapPin, FiInstagram, FiFacebook, FiTwitter, FiYoutube, FiUser, FiShoppingCart, FiHeart, FiPackage, FiSearch } from 'react-icons/fi';
+import { FiMail, FiPhone, FiMapPin, FiInstagram, FiFacebook, FiTwitter, FiYoutube } from 'react-icons/fi';
 import { FaWhatsapp, FaTelegram } from 'react-icons/fa';
-import { Row, Col, Nav } from 'react-bootstrap';
+import { Row, Col } from 'react-bootstrap';
 
 export default function Footer() {
   return (

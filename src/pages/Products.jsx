@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { collection, getDocs, doc, getDoc, setDoc, arrayUnion, arrayRemove, query, where } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, setDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { Row, Col, Spinner, Button, Card, Form, Collapse } from 'react-bootstrap';
 import { FiShoppingCart, FiHeart, FiZap, FiSearch, FiFilter, FiX, FiChevronDown, FiChevronUp } from 'react-icons/fi';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { getProductImageSrc } from '../utils/imageHelper';
 
@@ -22,41 +22,6 @@ export default function Products() {
   const navigate = useNavigate();
 
   const categories = ['All', 'Women', 'Men', 'Kids', 'Accessories'];
-
-  useEffect(() => {
-    loadProducts();
-  }, []);
-
-  useEffect(() => {
-    loadWishlist();
-  }, [user]);
-
-  useEffect(() => {
-    filterAndSortProducts();
-  }, [products, searchQuery, selectedCategory, sortBy]);
-
-  const loadProducts = async () => {
-    try {
-      const snap = await getDocs(collection(db, 'products'));
-      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setProducts(data);
-    } catch (error) {
-      toast.error('Failed to load products');
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadWishlist = async () => {
-    if (!user) return;
-    try {
-      const snap = await getDoc(doc(db, 'wishlists', user.uid));
-      setWishlistIds(snap.data()?.ids || []);
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   const filterAndSortProducts = () => {
     let result = [...products];
@@ -148,6 +113,52 @@ export default function Products() {
     setSelectedCategory('All');
     setSortBy('name');
   };
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const snap = await getDocs(collection(db, 'products'));
+        if (isMounted) {
+          const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          setProducts(data);
+        }
+      } catch (error) {
+        if (isMounted) {
+          toast.error('Failed to load products');
+          console.error(error);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    })();
+    return () => { isMounted = false; };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      if (!user) return;
+      try {
+        const snap = await getDoc(doc(db, 'wishlists', user.uid));
+        if (isMounted) setWishlistIds(snap.data()?.ids || []);
+      } catch (error) {
+        if (isMounted) console.error(error);
+      }
+    })();
+    return () => { isMounted = false; };
+  }, [user]);
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      if (isMounted) {
+        filterAndSortProducts();
+      }
+    })();
+    return () => { isMounted = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [products, searchQuery, selectedCategory, sortBy]);
 
   if (loading) {
     return (

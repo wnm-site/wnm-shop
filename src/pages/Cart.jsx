@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
@@ -24,17 +24,38 @@ export default function Cart() {
   }, [user]);
 
   const updateQty = async (idx, delta) => {
-    const newItems = [...items];
-    newItems[idx].qty += delta;
-    if (newItems[idx].qty <= 0) newItems.splice(idx, 1);
-    await setDoc(doc(db, 'carts', user.uid), { items: newItems });
+    try {
+      const ref = doc(db, 'carts', user.uid);
+      const snap = await getDoc(ref);
+      const items = snap.data()?.items || [];
+      if (idx >= items.length) return;
+      
+      const newItems = [...items];
+      newItems[idx] = { ...newItems[idx], qty: newItems[idx].qty + delta };
+      if (newItems[idx].qty <= 0) {
+        newItems.splice(idx, 1);
+      }
+      await setDoc(ref, { items: newItems });
+    } catch (error) {
+      console.error('Failed to update quantity:', error);
+      toast.error('Failed to update cart');
+    }
   };
 
   const removeItem = async (idx) => {
-    const newItems = [...items];
-    newItems.splice(idx, 1);
-    await setDoc(doc(db, 'carts', user.uid), { items: newItems });
-    toast.success('Removed from cart');
+    try {
+      const ref = doc(db, 'carts', user.uid);
+      const snap = await getDoc(ref);
+      const items = snap.data()?.items || [];
+      if (idx >= items.length) return;
+      
+      const newItems = items.filter((_, i) => i !== idx);
+      await setDoc(ref, { items: newItems });
+      toast.success('Removed from cart');
+    } catch (error) {
+      console.error('Failed to remove item:', error);
+      toast.error('Failed to remove item');
+    }
   };
 
   const total = items.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.qty || 0), 0);

@@ -1,306 +1,3 @@
-// import { useEffect, useState } from 'react';
-// import { collection, getDocs, doc, getDoc, setDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
-// import { db } from '../firebase';
-// import { useAuth } from '../context/AuthContext';
-// import { Row, Col, Spinner, Button, Card } from 'react-bootstrap';
-// import { FiShoppingCart, FiHeart, FiEye, FiZap } from 'react-icons/fi';
-// import { Link } from 'react-router-dom';
-// import toast from 'react-hot-toast';
-// import { getProductImageSrc } from '../utils/imageHelper';
-
-// export default function ProductSection() {
-//   const [products, setProducts] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [wishlistIds, setWishlistIds] = useState([]);
-//   const { user } = useAuth();
-
-//   useEffect(() => {
-//     loadProducts();
-//   }, []);
-
-//   useEffect(() => {
-//     loadWishlist();
-//   }, [user]);
-
-//   const loadProducts = async () => {
-//     try {
-//       const snap = await getDocs(collection(db, 'products'));
-//       setProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-//     } catch (error) {
-//       toast.error('Failed to load products');
-//       console.error(error);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const loadWishlist = async () => {
-//     if (!user) return;
-//     try {
-//       const snap = await getDoc(doc(db, 'wishlists', user.uid));
-//       setWishlistIds(snap.data()?.ids || []);
-//     } catch (error) {
-//       console.error(error);
-//     }
-//   };
-
-//   const addToCart = async (product) => {
-//     if (!user) {
-//       toast.error('Please login first');
-//       return;
-//     }
-//     try {
-//       const ref = doc(db, 'carts', user.uid);
-//       const snap = await getDoc(ref);
-//       const items = snap.data()?.items || [];
-//       const existing = items.find(i => i.id === product.id);
-      
-//       if (existing) {
-//         existing.qty += 1;
-//         await setDoc(ref, { items }, { merge: true });
-//       } else {
-//         await setDoc(ref, { items: arrayUnion({ ...product, qty: 1, size: 'M' }) }, { merge: true });
-//       }
-//       toast.success(`${product.name} added to cart! 🛒`);
-//     } catch (error) {
-//       toast.error('Failed to add to cart');
-//       console.error(error);
-//     }
-//   };
-
-//   const toggleWishlist = async (e, productId) => {
-//     e.preventDefault();
-//     e.stopPropagation();
-    
-//     if (!user) {
-//       toast.error('Please login first');
-//       return;
-//     }
-    
-//     try {
-//       const ref = doc(db, 'wishlists', user.uid);
-//       const isAlreadyInWishlist = wishlistIds.includes(productId);
-      
-//       if (isAlreadyInWishlist) {
-//         await setDoc(ref, { ids: arrayRemove(productId) }, { merge: true });
-//         setWishlistIds(wishlistIds.filter(id => id !== productId));
-//         toast.success('Removed from wishlist');
-//       } else {
-//         await setDoc(ref, { ids: arrayUnion(productId) }, { merge: true });
-//         setWishlistIds([...wishlistIds, productId]);
-//         toast.success('Added to wishlist ❤️');
-//       }
-//     } catch (error) {
-//       toast.error('Failed to update wishlist');
-//       console.error(error);
-//     }
-//   };
-
-//   if (loading) {
-//     return (
-//       <div className="text-center py-5">
-//         <Spinner animation="border" variant="danger" />
-//         <p className="mt-3 text-muted">Loading amazing products...</p>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <section id="collection" className="py-5">
-//       <div className="container">
-//         {/* Section Header */}
-//         <div className="text-center mb-5">
-//           <span className="badge bg-light text-dark mb-2 px-3 py-2">OUR COLLECTION</span>
-//           <h2 className="fw-bold mb-2" style={{ color: '#880e4f', fontFamily: 'Playfair Display, serif' }}>
-//             Our Dress Collection
-//           </h2>
-//           <p className="text-muted">Handpicked styles for every occasion</p>
-//           <div 
-//             className="mx-auto mt-3" 
-//             style={{ width: '60px', height: '3px', backgroundColor: '#d4af37' }}
-//           ></div>
-//         </div>
-
-//         {/* Empty State */}
-//         {products.length === 0 ? (
-//           <div className="text-center py-5">
-//             <div style={{ fontSize: '4rem' }}>👗</div>
-//             <p className="text-muted fs-5 mt-3">No products available yet.</p>
-//             <p className="text-muted small">Admin needs to add products from the dashboard.</p>
-//           </div>
-//         ) : (
-//           <>
-//             {/* Products Grid */}
-//             <Row xs={1} sm={2} lg={3} xl={4} className="g-4">
-//               {products.map(product => {
-//                 const discount = product.oldPrice 
-//                   ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
-//                   : 0;
-//                 const isInWishlist = wishlistIds.includes(product.id);
-                
-//                 return (
-//                   <Col key={product.id}>
-//                     <Card 
-//                       className="h-100 border-0 shadow-sm product-card" 
-//                       style={{ 
-//                         transition: 'all 0.3s', 
-//                         borderRadius: '16px', 
-//                         overflow: 'hidden' 
-//                       }}
-//                     >
-//                       {/* Image Container */}
-//                       <div className="position-relative" style={{ overflow: 'hidden' }}>
-//                         <Link to={`/product/${product.id}`}>
-//                          <Card.Img 
-//                              variant="top" 
-//                              src={getProductImageSrc(product)} 
-//                              alt={product.name}
-//                              className="product-image"
-//                              style={{ 
-//                                aspectRatio: '1/1',
-//                                objectFit: 'contain', 
-//                                backgroundColor: '#f8f9fa',
-//                                transition: 'transform 0.5s',
-//                                width: '100%'
-//                              }}
-//                              onError={(e) => {
-//                                e.target.src = 'https://via.placeholder.com/600x600?text=No+Image';
-//                              }}
-//                            />
-//                         </Link>
-                        
-//                         {/* Discount Badge */}
-//                         {discount > 0 && (
-//                           <span 
-//                             className="badge bg-danger position-absolute top-0 start-0 m-3"
-//                             style={{ fontSize: '0.75rem', padding: '6px 10px' }}
-//                           >
-//                             {discount}% OFF
-//                           </span>
-//                         )}
-                        
-//                         {/* Wishlist Button */}
-//                         <Button
-//                           variant={isInWishlist ? 'danger' : 'light'}
-//                           size="sm"
-//                           className="position-absolute top-0 end-0 m-3 rounded-circle shadow-sm"
-//                           style={{ 
-//                             width: '40px', 
-//                             height: '40px', 
-//                             padding: 0, 
-//                             display: 'flex', 
-//                             alignItems: 'center', 
-//                             justifyContent: 'center',
-//                             border: 'none'
-//                           }}
-//                           onClick={(e) => toggleWishlist(e, product.id)}
-//                         >
-//                           <FiHeart fill={isInWishlist ? 'white' : 'none'} />
-//                         </Button>
-//                       </div>
-
-//                       {/* Card Body */}
-//                       <Card.Body className="d-flex flex-column p-3">
-//                         <Card.Title 
-//                           className="fw-bold mb-2" 
-//                           style={{ fontSize: '1rem' }}
-//                         >
-//                           {product.name}
-//                         </Card.Title>
-//                         <Card.Text 
-//                           className="text-muted small flex-grow-1 mb-3" 
-//                           style={{ fontSize: '0.85rem', lineHeight: '1.5' }}
-//                         >
-//                           {product.description?.substring(0, 80)}...
-//                         </Card.Text>
-                        
-//                         {/* Rating */}
-//                         <div className="mb-2">
-//                           <span className="text-warning">
-//                             {'★'.repeat(Math.floor(product.rating || 4))}
-//                             {'☆'.repeat(5 - Math.floor(product.rating || 4))}
-//                           </span>
-//                           <span className="text-muted small ms-1">
-//                             ({product.reviews || 0})
-//                           </span>
-//                         </div>
-
-//                         {/* Price */}
-//                         <div className="mb-3">
-//                           <span className="fw-bold text-danger fs-5">
-//                             ₹{product.price?.toLocaleString('en-IN')}
-//                           </span>
-//                           {product.oldPrice && (
-//                             <small className="text-muted text-decoration-line-through ms-2">
-//                               ₹{product.oldPrice?.toLocaleString('en-IN')}
-//                             </small>
-//                           )}
-//                         </div>
-
-//                         {/* Action Buttons */}
-//                         <div className="d-grid gap-2">
-//                           <Link 
-//                             to={`/product/${product.id}`} 
-//                             className="btn btn-outline-dark btn-sm"
-//                           >
-//                             <FiEye className="me-1" /> View Details
-//                           </Link>
-//                           <div className="d-flex gap-2">
-//                             <Button 
-//                               variant="outline-danger" 
-//                               size="sm" 
-//                               className="flex-grow-1"
-//                               onClick={() => addToCart(product)}
-//                             >
-//                               <FiShoppingCart className="me-1" /> Add
-//                             </Button>
-//                             <Link 
-//                               to={`/product/${product.id}`}
-//                               className="btn btn-sm flex-grow-1 text-white"
-//                               style={{ 
-//                                 backgroundColor: '#c2185b', 
-//                                 borderColor: '#c2185b' 
-//                               }}
-//                             >
-//                               <FiZap className="me-1" /> Buy
-//                             </Link>
-//                           </div>
-//                         </div>
-//                       </Card.Body>
-//                     </Card>
-//                   </Col>
-//                 );
-//               })}
-//             </Row>
-
-//             {/* View All Button */}
-//             <div className="text-center mt-5">
-//               <Button 
-//                 variant="outline-dark" 
-//                 size="lg" 
-//                 className="px-5 rounded-pill"
-//               >
-//                 View All Products →
-//               </Button>
-//             </div>
-//           </>
-//         )}
-//       </div>
-
-//       {/* Custom Styles */}
-//       <style>{`
-//         .product-card:hover {
-//           transform: translateY(-8px);
-//           box-shadow: 0 20px 40px rgba(0,0,0,0.12) !important;
-//         }
-//         .product-card:hover .product-image {
-//           transform: scale(1.05);
-//         }
-//       `}</style>
-//     </section>
-//   );
-// }
-
 import { useEffect, useState } from 'react';
 import { collection, getDocs, doc, getDoc, setDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -319,34 +16,39 @@ export default function ProductSection() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadProducts();
+    let isMounted = true;
+    (async () => {
+      try {
+        const snap = await getDocs(collection(db, 'products'));
+        if (isMounted) {
+          const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          setProducts(data);
+        }
+      } catch (error) {
+        if (isMounted) {
+          toast.error('Failed to load products');
+          console.error(error);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    })();
+    return () => { isMounted = false; };
   }, []);
 
   useEffect(() => {
-    loadWishlist();
+    let isMounted = true;
+    (async () => {
+      if (!user) return;
+      try {
+        const snap = await getDoc(doc(db, 'wishlists', user.uid));
+        if (isMounted) setWishlistIds(snap.data()?.ids || []);
+      } catch (error) {
+        if (isMounted) console.error(error);
+      }
+    })();
+    return () => { isMounted = false; };
   }, [user]);
-
-  const loadProducts = async () => {
-    try {
-      const snap = await getDocs(collection(db, 'products'));
-      setProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    } catch (error) {
-      toast.error('Failed to load products');
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadWishlist = async () => {
-    if (!user) return;
-    try {
-      const snap = await getDoc(doc(db, 'wishlists', user.uid));
-      setWishlistIds(snap.data()?.ids || []);
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   const addToCart = async (product) => {
     if (!user) {
@@ -403,6 +105,41 @@ export default function ProductSection() {
   const handleCardClick = (productId) => {
     navigate(`/product/${productId}`);
   };
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const snap = await getDocs(collection(db, 'products'));
+        if (isMounted) {
+          const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          setProducts(data);
+        }
+      } catch (error) {
+        if (isMounted) {
+          toast.error('Failed to load products');
+          console.error(error);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    })();
+    return () => { isMounted = false; };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      if (!user) return;
+      try {
+        const snap = await getDoc(doc(db, 'wishlists', user.uid));
+        if (isMounted) setWishlistIds(snap.data()?.ids || []);
+      } catch (error) {
+        if (isMounted) console.error(error);
+      }
+    })();
+    return () => { isMounted = false; };
+  }, [user]);
 
   if (loading) {
     return (
@@ -616,6 +353,17 @@ export default function ProductSection() {
           </>
         )}
       </div>
+
+      {/* Custom Styles */}
+      <style>{`
+        .product-card:hover {
+          transform: translateY(-8px);
+          box-shadow: 0 20px 40px rgba(0,0,0,0.12) !important;
+        }
+        .product-card:hover .product-image {
+          transform: scale(1.05);
+        }
+      `}</style>
     </section>
   );
 }

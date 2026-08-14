@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { FiHome, FiPackage, FiSearch, FiHeart, FiShoppingCart, FiUser, FiLogOut, FiMenu, FiX } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import toast from 'react-hot-toast';
-import { Nav, Button } from 'react-bootstrap';
+import { Nav } from 'react-bootstrap';
 
 const navItems = [
   { to: '/dashboard', icon: FiHome, label: 'Dashboard', exact: true },
@@ -38,7 +38,7 @@ export default function UserLayout() {
       await signOut(auth);
       toast.success('Logged out successfully');
       navigate('/');
-    } catch (error) {
+    } catch {
       toast.error('Logout failed');
     }
   };
@@ -46,13 +46,13 @@ export default function UserLayout() {
   const displayName = userData?.name || user?.email?.split('@')[0] || 'User';
 
   return (
-    <div className="d-flex vh-100">
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
       {/* Mobile Overlay */}
       {sidebarOpen && (
         <div
-          className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-lg-none"
-          style={{ zIndex: 1038 }}
+          className="d-lg-none"
           onClick={() => setSidebarOpen(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1038 }}
         />
       )}
 

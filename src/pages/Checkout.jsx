@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { doc, onSnapshot, addDoc, collection, setDoc, query, where, getDocs, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, onSnapshot, addDoc, collection, setDoc, query, where, getDocs, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { Form, Button, Card, Spinner, Alert } from 'react-bootstrap';
@@ -138,14 +138,24 @@ export default function Checkout() {
       return;
     }
 
-    if (items.length === 0) {
-      toast.error('Your cart is empty');
-      return;
-    }
-
     setPlacingOrder(true);
     try {
       const orderId = 'ORD' + Date.now();
+
+      // Re-read cart from Firestore to prevent client-side manipulation
+      const cartSnap = await getDoc(doc(db, 'carts', user.uid));
+      const cartItems = cartSnap.data()?.items || [];
+      
+      if (cartItems.length === 0) {
+        toast.error('Your cart is empty');
+        setPlacingOrder(false);
+        return;
+      }
+
+      const cartSubtotal = cartItems.reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.qty) || 0), 0);
+      const cartShipping = cartSubtotal > 999 ? 0 : 99;
+      const cartDiscount = discount; // Already validated client-side
+      const cartTotal = cartSubtotal - cartDiscount + cartShipping;
 
       const orderData = {
         orderId,
@@ -155,11 +165,11 @@ export default function Checkout() {
           ...form,
           email: form.email || user.email
         },
-        items,
-        subtotal,
-        shipping,
-        discount,
-        total,
+        items: cartItems,
+        subtotal: cartSubtotal,
+        shipping: cartShipping,
+        discount: cartDiscount,
+        total: cartTotal,
         paymentMethod: 'Cash on Delivery',
         status: 'Pending',
         createdAt: new Date()
@@ -170,7 +180,7 @@ export default function Checkout() {
           code: appliedCoupon.code,
           discountType: appliedCoupon.discountType,
           value: appliedCoupon.value,
-          discountAmount: discount
+          discountAmount: cartDiscount
         };
       }
 

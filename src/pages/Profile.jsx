@@ -21,31 +21,31 @@ export default function Profile() {
   });
 
   useEffect(() => {
-    loadProfile();
-  }, [user]);
-
-  const loadProfile = async () => {
-    if (!user) return;
-    try {
-      const snap = await getDoc(doc(db, 'users', user.uid));
-      if (snap.exists()) {
-        const data = snap.data();
-        setForm({
-          name: data.name || '',
-          email: data.email || user.email,
-          phone: data.phone || '',
-          address: data.address || '',
-          city: data.city || '',
-          state: data.state || '',
-          pincode: data.pincode || ''
-        });
+    let isMounted = true;
+    (async () => {
+      if (!user) return;
+      try {
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        if (isMounted && snap.exists()) {
+          const data = snap.data();
+          setForm({
+            name: data.name || '',
+            email: data.email || user.email,
+            phone: data.phone || '',
+            address: data.address || '',
+            city: data.city || '',
+            state: data.state || '',
+            pincode: data.pincode || ''
+          });
+        }
+      } catch {
+        if (isMounted) toast.error('Failed to load profile');
+      } finally {
+        if (isMounted) setLoading(false);
       }
-    } catch (error) {
-      toast.error('Failed to load profile');
-    } finally {
-      setLoading(false);
-    }
-  };
+    })();
+    return () => { isMounted = false; };
+  }, [user]);
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -61,10 +61,9 @@ export default function Profile() {
         updatedAt: new Date()
       });
       toast.success('Profile updated successfully! ✅');
-    } catch (error) {
-      toast.error('Failed to update profile');
-      console.error(error);
-    } finally {
+      } catch {
+        toast.error('Failed to update profile');
+      } finally {
       setSaving(false);
     }
   };
@@ -214,7 +213,7 @@ export default function Profile() {
                 className="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
                 style={{ width: '100px', height: '100px', fontSize: '40px' }}
               >
-                {form.name.charAt(0).toUpperCase() || 'U'}
+                {(form.name?.charAt(0) || 'U').toUpperCase()}
               </div>
               <h5>{form.name || 'User'}</h5>
               <p className="text-muted small mb-0">{form.email}</p>

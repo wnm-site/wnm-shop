@@ -24,11 +24,11 @@ export const compressImage = (file, maxWidth = 800, quality = 0.7) => {
         const base64 = canvas.toDataURL('image/jpeg', quality);
         resolve(base64);
       };
-      img.onerror = reject;
+      img.onerror = () => reject(new Error(`Failed to load image: ${file.name}. The file may be corrupted or not a valid image.`));
       img.src = e.target.result;
     };
     
-    reader.onerror = reject;
+    reader.onerror = () => reject(new Error(`Failed to read file: ${file.name}`));
     reader.readAsDataURL(file);
   });
 };

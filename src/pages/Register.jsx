@@ -2,19 +2,15 @@ import { useState } from 'react';
 import { auth, db } from '../firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
-import { Form, Button, Card, Alert } from 'react-bootstrap';
+import { Form, Button, Card } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiUser, FiMail, FiLock, FiShield } from 'react-icons/fi';
+import { FiUser, FiMail, FiLock } from 'react-icons/fi';
 import toast from 'react-hot-toast';
-
-const ADMIN_SECRET_KEY = 'WEARNXTMODE@ADMIN';
 
 export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [adminKey, setAdminKey] = useState('');
-  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -36,19 +32,13 @@ export default function Register() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-
-    if (isAdmin && adminKey !== ADMIN_SECRET_KEY) {
-      toast.error('Invalid admin secret key! ❌');
-      return;
-    }
-
     setLoading(true);
     try {
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       await setDoc(doc(db, 'users', cred.user.uid), {
         name,
         email: email.toLowerCase().trim(),
-        isAdmin: isAdmin && adminKey === ADMIN_SECRET_KEY,
+        isAdmin: false,
         phone: '',
         address: '',
         city: '',
@@ -58,12 +48,7 @@ export default function Register() {
         updatedAt: new Date()
       });
 
-      if (isAdmin && adminKey === ADMIN_SECRET_KEY) {
-        toast.success('🎉 Admin account created successfully!');
-      } else {
-        toast.success('✅ Account created successfully!');
-      }
-
+      toast.success('✅ Account created successfully!');
       navigate('/');
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -140,57 +125,19 @@ export default function Register() {
                   />
                 </Form.Group>
 
-                <Form.Group className="mb-3">
-                  <Form.Check
-                    type="checkbox"
-                    id="isAdmin"
-                    label={
-                      <span>
-                        <FiShield className="me-1" /> Register as Admin
-                      </span>
-                    }
-                    checked={isAdmin}
-                    onChange={e => setIsAdmin(e.target.checked)}
-                  />
-                </Form.Group>
-
-                {isAdmin && (
-                  <Form.Group className="mb-3">
-                    <Form.Label className="fw-500 text-warning">
-                      <FiShield className="me-2" />Admin Secret Key
-                    </Form.Label>
-                    <Form.Control
-                      type="password"
-                      required={isAdmin}
-                      placeholder="Enter admin secret key"
-                      value={adminKey}
-                      onChange={e => setAdminKey(e.target.value)}
-                      className="py-2 border-warning"
-                    />
-                    <Form.Text className="text-muted">
-                      🔒 Required for admin registration
-                    </Form.Text>
-                  </Form.Group>
-                )}
-
                 <Button
                   type="submit"
                   className="w-100 py-2 mt-2"
                   disabled={loading}
                   style={{
-                    backgroundColor: isAdmin ? '#d4af37' : '#c2185b',
-                    borderColor: isAdmin ? '#d4af37' : '#c2185b'
+                    backgroundColor: '#c2185b',
+                    borderColor: '#c2185b'
                   }}
                 >
                   {loading ? (
                     <>
                       <span className="spinner-border spinner-border-sm me-2" />
                       Creating Account...
-                    </>
-                  ) : isAdmin ? (
-                    <>
-                      <FiShield className="me-2" />
-                      Create Admin Account
                     </>
                   ) : (
                     'Create Account'

@@ -4,7 +4,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { Card, Row, Col, Badge, Spinner, Button, ListGroup, Form, Modal, Alert } from 'react-bootstrap';
-import { FiArrowLeft, FiPackage, FiMapPin, FiPhone, FiUser, FiEdit, FiCheck } from 'react-icons/fi';
+import { FiArrowLeft, FiPackage, FiMapPin, FiPhone, FiUser, FiEdit, FiCheck, FiXCircle } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { getProductImageSrc } from '../utils/imageHelper';
 
@@ -19,37 +19,44 @@ export default function OrderDetails() {
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
-    loadOrder();
-  }, [orderId, user]);
-
-  const loadOrder = async () => {
-    try {
-      const snap = await getDoc(doc(db, 'orders', orderId));
-      if (snap.exists()) {
-        const data = snap.data();
-        // Security: user can view their own orders, admin can view all
-        if (data.userId === user.uid || userData?.isAdmin) {
-          setOrder({ id: snap.id, ...data });
-          setNewStatus(data.status);
+    let isMounted = true;
+    (async () => {
+      try {
+        const snap = await getDoc(doc(db, 'orders', orderId));
+        if (!isMounted) return;
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.userId === user.uid || userData?.isAdmin) {
+            setOrder({ id: snap.id, ...data });
+            setNewStatus(data.status);
+          } else {
+            toast.error('Unauthorized access');
+            navigate('/orders');
+          }
         } else {
-          toast.error('Unauthorized access');
+          toast.error('Order not found');
           navigate('/orders');
         }
-      } else {
-        toast.error('Order not found');
-        navigate('/orders');
+      } catch (error) {
+        if (isMounted) {
+          console.error('Load error:', error);
+          toast.error('Failed to load order');
+        }
+      } finally {
+        if (isMounted) setLoading(false);
       }
-    } catch (error) {
-      console.error('Load error:', error);
-      toast.error('Failed to load order');
-    } finally {
-      setLoading(false);
-    }
-  };
+    })();
+    return () => { isMounted = false; };
+  }, [orderId, user, userData?.isAdmin, navigate]);
 
   const updateOrderStatus = async () => {
     if (!order || newStatus === order.status) {
       toast.error('Please select a different status');
+      return;
+    }
+
+    if (!userData?.isAdmin) {
+      toast.error('Only administrators can update order status');
       return;
     }
 
@@ -58,7 +65,7 @@ export default function OrderDetails() {
       await updateDoc(doc(db, 'orders', order.id), {
         status: newStatus,
         statusUpdatedAt: new Date(),
-        statusUpdatedBy: userData?.isAdmin ? 'admin' : 'user'
+        statusUpdatedBy: 'admin'
       });
       
       toast.success(`Order status updated to "${newStatus}" ✅`);

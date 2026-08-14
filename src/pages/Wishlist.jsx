@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { doc, onSnapshot, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot, getDoc, setDoc, arrayUnion } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { Row, Col, Spinner } from 'react-bootstrap';
@@ -30,7 +30,6 @@ export default function Wishlist() {
     const snap = await getDoc(ref);
     const items = snap.data()?.items || [];
     if (!items.find(i => i.id === product.id)) {
-      const { arrayUnion } = await import('firebase/firestore');
       await setDoc(ref, { items: arrayUnion({ ...product, qty: 1, size: 'M' }) }, { merge: true });
       toast.success('Added to cart!');
     } else {
