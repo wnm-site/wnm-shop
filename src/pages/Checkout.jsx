@@ -17,6 +17,8 @@ export default function Checkout() {
   const [discount, setDiscount] = useState(0);
   const [couponLoading, setCouponLoading] = useState(false);
   const [placingOrder, setPlacingOrder] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('COD');
+  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -26,6 +28,18 @@ export default function Checkout() {
     });
     return unsub;
   }, [user]);
+
+  // Load Razorpay SDK
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => setRazorpayLoaded(true);
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
   const shipping = subtotal > 999 ? 0 : 99;
@@ -130,6 +144,135 @@ export default function Checkout() {
     setCouponCode('');
   };
 
+  const createOrderInFirestore = async (paymentDetails = {}) => {
+    const orderId = 'ORD' + Date.now();
+    
+    // Re-read cart from Firestore to prevent client-side manipulation
+    const cartSnap = await getDoc(doc(db, 'carts', user.uid));
+    const cartItems = cartSnap.data()?.items || [];
+    
+    if (cartItems.length === 0) {
+      toast.error('Your cart is empty');
+      return null;
+    }
+
+    const cartSubtotal = cartItems.reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.qty) || 0), 0);
+    const cartShipping = cartSubtotal > 999 ? 0 : 99;
+    const cartDiscount = discount;
+    const cartTotal = cartSubtotal - cartDiscount + cartShipping;
+
+    const orderData = {
+      orderId,
+      userId: user.uid,
+      userEmail: user.email,
+      customer: {
+        ...form,
+        email: form.email || user.email
+      },
+      items: cartItems,
+      subtotal: cartSubtotal,
+      shipping: cartShipping,
+      discount: cartDiscount,
+      total: cartTotal,
+      paymentMethod: paymentDetails.paymentMethod || 'Cash on Delivery',
+      paymentStatus: paymentDetails.paymentStatus || 'Pending',
+      razorpayOrderId: paymentDetails.razorpayOrderId || null,
+      razorpayPaymentId: paymentDetails.razorpayPaymentId || null,
+      status: paymentDetails.paymentMethod === 'Razorpay' ? 'Processing' : 'Pending',
+      createdAt: new Date()
+    };
+
+    if (appliedCoupon) {
+      orderData.coupon = {
+        code: appliedCoupon.code,
+        discountType: appliedCoupon.discountType,
+        value: appliedCoupon.value,
+        discountAmount: cartDiscount
+      };
+    }
+
+    await addDoc(collection(db, 'orders'), orderData);
+
+    if (appliedCoupon) {
+      try {
+        await updateDoc(doc(db, 'coupons', appliedCoupon.id), {
+          usedCount: (appliedCoupon.usedCount || 0) + 1
+        });
+      } catch (couponError) {
+        console.error('Failed to update coupon count:', couponError);
+      }
+    }
+
+    await setDoc(doc(db, 'carts', user.uid), { items: [] });
+    return orderId;
+  };
+
+  const handleRazorpayPayment = async () => {
+    if (!razorpayLoaded) {
+      toast.error('Payment gateway is loading. Please try again.');
+      return;
+    }
+
+    setPlacingOrder(true);
+    try {
+      const totalAmount = Math.round(total * 100); // Razorpay expects amount in paise
+      
+      const options = {
+        key: 'rzp_test_TPMQCJNb1YoA7y',
+        amount: totalAmount,
+        currency: 'INR',
+        name: 'Wear NXT Mode',
+        description: `Order Payment - ${items.map(i => i.name).join(', ')}`,
+        image: 'https://i.ibb.co/4Z2GCxV9/logo-full-removebg-preview.png',
+        handler: async function(response) {
+          // Payment successful
+          try {
+            const orderId = await createOrderInFirestore({
+              paymentMethod: 'Razorpay',
+              paymentStatus: 'Paid',
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id
+            });
+            
+            if (orderId) {
+              toast.success(`Payment successful! Order placed: ${orderId}`);
+              navigate('/orders');
+            }
+          } catch (error) {
+            console.error('Order creation error:', error);
+            toast.error('Payment successful but order creation failed. Please contact support.');
+          } finally {
+            setPlacingOrder(false);
+          }
+        },
+        prefill: {
+          name: form.name || user?.email?.split('@')[0] || '',
+          email: form.email || user?.email || '',
+          contact: form.phone || ''
+        },
+        notes: {
+          address: form.address || ''
+        },
+        theme: {
+          color: '#880e4f'
+        },
+        modal: {
+          ondismiss: function() {
+            setPlacingOrder(false);
+            toast.error('Payment cancelled');
+          }
+        }
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    } catch (error) {
+      console.error('Razorpay error:', error);
+      toast.error('Failed to initialize payment: ' + error.message);
+      setPlacingOrder(false);
+    }
+  };
+
   const placeOrder = async (e) => {
     e.preventDefault();
 
@@ -140,65 +283,15 @@ export default function Checkout() {
 
     setPlacingOrder(true);
     try {
-      const orderId = 'ORD' + Date.now();
-
-      // Re-read cart from Firestore to prevent client-side manipulation
-      const cartSnap = await getDoc(doc(db, 'carts', user.uid));
-      const cartItems = cartSnap.data()?.items || [];
-      
-      if (cartItems.length === 0) {
-        toast.error('Your cart is empty');
-        setPlacingOrder(false);
-        return;
-      }
-
-      const cartSubtotal = cartItems.reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.qty) || 0), 0);
-      const cartShipping = cartSubtotal > 999 ? 0 : 99;
-      const cartDiscount = discount; // Already validated client-side
-      const cartTotal = cartSubtotal - cartDiscount + cartShipping;
-
-      const orderData = {
-        orderId,
-        userId: user.uid,
-        userEmail: user.email,
-        customer: {
-          ...form,
-          email: form.email || user.email
-        },
-        items: cartItems,
-        subtotal: cartSubtotal,
-        shipping: cartShipping,
-        discount: cartDiscount,
-        total: cartTotal,
+      const orderId = await createOrderInFirestore({
         paymentMethod: 'Cash on Delivery',
-        status: 'Pending',
-        createdAt: new Date()
-      };
-
-      if (appliedCoupon) {
-        orderData.coupon = {
-          code: appliedCoupon.code,
-          discountType: appliedCoupon.discountType,
-          value: appliedCoupon.value,
-          discountAmount: cartDiscount
-        };
+        paymentStatus: 'Pending'
+      });
+      
+      if (orderId) {
+        toast.success(`Order placed! Tracking ID: ${orderId}`);
+        navigate('/orders');
       }
-
-      await addDoc(collection(db, 'orders'), orderData);
-
-      if (appliedCoupon) {
-        try {
-          await updateDoc(doc(db, 'coupons', appliedCoupon.id), {
-            usedCount: (appliedCoupon.usedCount || 0) + 1
-          });
-        } catch (couponError) {
-          console.error('Failed to update coupon count:', couponError);
-        }
-      }
-
-      await setDoc(doc(db, 'carts', user.uid), { items: [] });
-      toast.success(`Order placed! Tracking ID: ${orderId}`);
-      navigate('/orders');
     } catch (error) {
       console.error('Order error:', error);
       const errorMsg = error.message || 'Failed to place order';
@@ -212,6 +305,14 @@ export default function Checkout() {
     }
   };
 
+  const handleSubmit = () => {
+    if (paymentMethod === 'Razorpay') {
+      handleRazorpayPayment();
+    } else {
+      placeOrder(new Event('submit'));
+    }
+  };
+
   if (loading) return <div className="text-center mt-5"><Spinner /></div>;
   if (items.length === 0) return <p className="text-center py-5">Cart is empty</p>;
 
@@ -220,7 +321,7 @@ export default function Checkout() {
       <div className="col-md-7">
         <Card className="p-4">
           <h3>Shipping Details</h3>
-          <Form onSubmit={placeOrder}>
+          <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3">
               <Form.Label>Full Name *</Form.Label>
               <Form.Control required value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
@@ -276,13 +377,55 @@ export default function Checkout() {
               </Card.Body>
             </Card>
 
-            <div className="alert alert-info">💰 Payment: <strong>Cash on Delivery (COD)</strong></div>
-            <Button type="submit" variant="dark" size="lg" className="w-100" disabled={placingOrder}>
-              {placingOrder ? 'Placing Order...' : 'Place Order (COD)'}
+            {/* Payment Method */}
+            <Card className="border-0 bg-light mb-3">
+              <Card.Body>
+                <h6 className="fw-bold mb-3">💳 Payment Method</h6>
+                <Form.Check
+                  type="radio"
+                  name="paymentMethod"
+                  value="COD"
+                  checked={paymentMethod === 'COD'}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  className="mb-2"
+                  label={
+                    <div>
+                      <strong>Cash on Delivery</strong>
+                      <p className="text-muted small mb-0">Pay when you receive your order</p>
+                    </div>
+                  }
+                />
+                <Form.Check
+                  type="radio"
+                  name="paymentMethod"
+                  value="Razorpay"
+                  checked={paymentMethod === 'Razorpay'}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  label={
+                    <div>
+                      <div className="d-flex align-items-center gap-2">
+                        <strong>Razorpay</strong>
+                        <span className="badge bg-success">Online Payment</span>
+                      </div>
+                      <p className="text-muted small mb-0">Pay securely with UPI, Cards, Net Banking & more</p>
+                    </div>
+                  }
+                />
+              </Card.Body>
+            </Card>
+
+            <div className="alert alert-info">
+              💰 Payment: <strong>{paymentMethod === 'Razorpay' ? 'Razorpay (Online)' : 'Cash on Delivery (COD)'}</strong>
+            </div>
+            <Button type="button" variant="dark" size="lg" className="w-100" disabled={placingOrder || !razorpayLoaded} onClick={handleSubmit}>
+              {placingOrder ? 'Processing...' : paymentMethod === 'Razorpay' ? `Pay ₹${total.toLocaleString('en-IN')} with Razorpay` : 'Place Order (COD)'}
             </Button>
-          </Form>
-        </Card>
-      </div>
+            {paymentMethod === 'Razorpay' && !razorpayLoaded && (
+              <p className="text-muted text-center mt-2 small">Loading payment gateway...</p>
+            )}
+            </Form>
+          </Card>
+        </div>
       <div className="col-md-5">
         <Card className="p-4">
           <h4>Order Summary</h4>

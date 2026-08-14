@@ -251,12 +251,12 @@ export default function OrderDetails() {
               <Row>
                 <Col md={6}>
                   <p className="mb-2"><strong>Payment Method:</strong></p>
-                  <p className="text-muted mb-0">{order.paymentMethod}</p>
+                  <p className="text-muted mb-0">{order.paymentMethod || 'Cash on Delivery'}</p>
                 </Col>
                 <Col md={6}>
                   <p className="mb-2"><strong>Payment Status:</strong></p>
-                  <Badge bg={order.status === 'Delivered' ? 'success' : 'warning'}>
-                    {order.status === 'Delivered' ? 'Paid' : 'Cash on Delivery'}
+                  <Badge bg={order.paymentStatus === 'Paid' ? 'success' : 'warning'}>
+                    {order.paymentStatus === 'Paid' ? 'Payment Received' : 'Pending'}
                   </Badge>
                 </Col>
               </Row>
