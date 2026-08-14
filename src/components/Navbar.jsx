@@ -54,9 +54,24 @@ export default function Navbar() {
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
       <div className="container">
-        <Link className="navbar-brand fw-bold" to="/" style={{ color: '#880e4f', fontSize: '1.5rem' }}>
-          Wear NXT
-        </Link>
+
+<Link 
+  className="navbar-brand" 
+  to="/" 
+  style={{ 
+    lineHeight: 0,
+    display: 'inline-block',
+    borderRadius: '8px',
+    boxShadow: '0 4px 20px rgba(238, 25, 96, 0.4)',
+  }}
+>
+  <img
+    src="https://i.ibb.co/4Z2GCxV9/logo-full-removebg-preview.png"
+    alt="Wear NXT"
+    className="d-block"
+    style={{ height: '42px', width: 'auto' }}
+  />
+</Link>
 
         <button
           className="navbar-toggler border-0"

@@ -47,11 +47,25 @@ export default function Footer() {
         <div className="container">
           <div className="row g-4 mb-4">
             {/* Brand Column */}
-            <Col lg={3} md={6}>
-              <h3 className="fw-bold mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>
-                Wear NXT Mode
-              </h3>
-              <p className="opacity-75 mb-3" style={{ fontSize: '0.9rem' }}>
+             <Col lg={3} md={6}>
+               <Link 
+  className="navbar-brand" 
+  to="/" 
+  style={{ 
+    lineHeight: 0,
+    display: 'inline-block',
+    borderRadius: '8px',
+    boxShadow: '0 4px 20px rgba(238, 25, 96, 0.4)',
+  }}
+>
+  <img
+    src="https://i.ibb.co/4Z2GCxV9/logo-full-removebg-preview.png"
+    alt="Wear NXT"
+    className="d-block"
+    style={{ height: '42px', width: 'auto' }}
+  />
+</Link>
+               <p className="opacity-75 mb-3" style={{ fontSize: '0.9rem' }}>
                 Premium Women's Fashion crafted with love. Discover elegance 
                 in every stitch, designed for the modern woman.
               </p>
