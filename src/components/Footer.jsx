@@ -51,12 +51,18 @@ export default function Footer() {
                <Link 
   className="navbar-brand" 
   to="/" 
-  style={{ lineHeight: 0, padding: 0, display: 'inline-block' }}
+  style={{ 
+    lineHeight: 0,
+    display: 'inline-block',
+    borderRadius: '8px',
+    boxShadow: '0 4px 20px rgba(238, 25, 96, 0.4)',
+  }}
 >
   <img
     src="https://i.ibb.co/4Z2GCxV9/logo-full-removebg-preview.png"
     alt="Wear NXT"
-    style={{ height: '48px', maxHeight: '48px', width: 'auto', maxWidth: '100%', display: 'block' }}
+    className="d-block"
+    style={{ height: '42px', width: 'auto' }}
   />
 </Link>
                <p className="opacity-75 mb-3" style={{ fontSize: '0.9rem' }}>
