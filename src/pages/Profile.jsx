@@ -126,7 +126,7 @@ export default function Profile() {
                         type="tel"
                         value={form.phone}
                         onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                        placeholder="+91 98765 43210"
+                        placeholder="+91 6291305725"
                       />
                     </Form.Group>
                   </Col>

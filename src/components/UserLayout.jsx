@@ -196,7 +196,7 @@ export default function UserLayout() {
       {/* Responsive margin fix */}
       <style>{`
         @media (max-width: 991.98px) {
-          .admin-main, [style*="marginLeft: 260px"] {
+          .admin-main, [style*="margin-left: 260px"] {
             margin-left: 0 !important;
           }
         }

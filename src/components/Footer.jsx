@@ -117,15 +117,15 @@ export default function Footer() {
               <ul className="list-unstyled">
                 <li className="mb-2 d-flex align-items-start">
                   <FiMapPin className="me-2 mt-1 flex-shrink-0" style={{ color: '#d4af37', fontSize: '0.9rem' }} />
-                  <span className="opacity-75" style={{ fontSize: '0.85rem' }}>123 Fashion Street, Mumbai, Maharashtra 400001, India</span>
+                  <span className="opacity-75" style={{ fontSize: '0.85rem' }}>Kolkata, West Bengal, India</span>
                 </li>
                 <li className="mb-2 d-flex align-items-center">
                   <FiPhone className="me-2 flex-shrink-0" style={{ color: '#d4af37', fontSize: '0.9rem' }} />
-                  <a href="tel:+919876543210" className="text-white text-decoration-none opacity-75" style={{ fontSize: '0.85rem' }}>+91 98765 43210</a>
+                  <a href="tel:+919876543210" className="text-white text-decoration-none opacity-75" style={{ fontSize: '0.85rem' }}>+91 6291305725</a>
                 </li>
                 <li className="mb-2 d-flex align-items-center">
                   <FiMail className="me-2 flex-shrink-0" style={{ color: '#d4af37', fontSize: '0.9rem' }} />
-                  <a href="mailto:contact@wearnxtmode.com" className="text-white text-decoration-none opacity-75" style={{ fontSize: '0.85rem' }}>contact@wearnxtmode.com</a>
+                  <a href="mailto:wearnxtmode@gmail.com" className="text-white text-decoration-none opacity-75" style={{ fontSize: '0.85rem' }}>wearnxtmode@gmail.com</a>
                 </li>
               </ul>
 

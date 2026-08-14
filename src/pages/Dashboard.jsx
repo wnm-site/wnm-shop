@@ -4,12 +4,13 @@ import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { Card, Row, Col, Table, Badge, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { FaBoxOpen, FaRupeeSign } from 'react-icons/fa';
+import { FaBoxOpen, FaRupeeSign, FaShoppingBag, FaClipboardList } from 'react-icons/fa';
 import { FiHeart, FiShoppingCart } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, userData } = useAuth();
+  const displayName = userData?.name || user?.email?.split('@')[0] || 'User';
   const [stats, setStats] = useState({
     totalOrders: 0,
     totalWishlist: 0,
@@ -87,52 +88,127 @@ export default function Dashboard() {
   }
 
   return (
-    <div>
+    <div className="container py-4">
+      {/* Welcome Banner */}
+      <Card className="border-0 shadow-sm mb-4 text-white" style={{ background: 'linear-gradient(135deg, #880e4f, #c2185b)' }}>
+        <Card.Body className="p-4">
+          <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+            <div>
+              <h4 className="fw-bold mb-1">Welcome back, {displayName}! 👋</h4>
+              <p className="mb-0 opacity-75">Here's what's happening with your account today.</p>
+            </div>
+            <Link to="/products">
+              <Button variant="light" size="sm" className="fw-semibold">Continue Shopping →</Button>
+            </Link>
+          </div>
+        </Card.Body>
+      </Card>
+
       {/* Stats Cards */}
-      <Row className="g-4 mb-5">
-        <Col md={3}>
-          <Card className="border-0 shadow-sm h-100">
-            <Card.Body className="text-center p-4">
-              <div className="mb-3">
-                <FaBoxOpen size={40} className="text-primary" />
+      <Row className="g-3 g-md-4 mb-4">
+        <Col xs={6} md={3}>
+          <Card className="border-0 shadow-sm h-100 stat-card">
+            <Card.Body className="p-3 p-md-4">
+              <div className="d-flex align-items-center gap-3">
+                <div className="stat-icon bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
+                  <FaBoxOpen size={24} />
+                </div>
+                <div>
+                  <h3 className="fw-bold mb-0">{stats.totalOrders}</h3>
+                  <p className="text-muted mb-0 small">Total Orders</p>
+                </div>
               </div>
-              <h2 className="fw-bold mb-1">{stats.totalOrders}</h2>
-              <p className="text-muted mb-0">Total Orders</p>
             </Card.Body>
           </Card>
         </Col>
-        <Col md={3}>
-          <Card className="border-0 shadow-sm h-100">
-            <Card.Body className="text-center p-4">
-              <div className="mb-3">
-                <FaRupeeSign size={40} className="text-danger" />
+        <Col xs={6} md={3}>
+          <Card className="border-0 shadow-sm h-100 stat-card">
+            <Card.Body className="p-3 p-md-4">
+              <div className="d-flex align-items-center gap-3">
+                <div className="stat-icon bg-danger bg-opacity-10 text-danger rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
+                  <FaRupeeSign size={24} />
+                </div>
+                <div>
+                  <h3 className="fw-bold mb-0">₹{stats.totalSpent.toLocaleString('en-IN')}</h3>
+                  <p className="text-muted mb-0 small">Total Spent</p>
+                </div>
               </div>
-              <h2 className="fw-bold mb-1">₹{stats.totalSpent.toLocaleString('en-IN')}</h2>
-              <p className="text-muted mb-0">Total Spent</p>
             </Card.Body>
           </Card>
         </Col>
-        <Col md={3}>
-          <Card className="border-0 shadow-sm h-100">
-            <Card.Body className="text-center p-4">
-              <div className="mb-3">
-                <FiHeart size={40} className="text-danger" />
+        <Col xs={6} md={3}>
+          <Card className="border-0 shadow-sm h-100 stat-card">
+            <Card.Body className="p-3 p-md-4">
+              <div className="d-flex align-items-center gap-3">
+                <div className="stat-icon bg-danger bg-opacity-10 text-danger rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
+                  <FiHeart size={24} />
+                </div>
+                <div>
+                  <h3 className="fw-bold mb-0">{stats.totalWishlist}</h3>
+                  <p className="text-muted mb-0 small">Wishlist Items</p>
+                </div>
               </div>
-              <h2 className="fw-bold mb-1">{stats.totalWishlist}</h2>
-              <p className="text-muted mb-0">Wishlist Items</p>
             </Card.Body>
           </Card>
         </Col>
-        <Col md={3}>
-          <Card className="border-0 shadow-sm h-100">
-            <Card.Body className="text-center p-4">
-              <div className="mb-3">
-                <FiShoppingCart size={40} className="text-success" />
+        <Col xs={6} md={3}>
+          <Card className="border-0 shadow-sm h-100 stat-card">
+            <Card.Body className="p-3 p-md-4">
+              <div className="d-flex align-items-center gap-3">
+                <div className="stat-icon bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
+                  <FiShoppingCart size={24} />
+                </div>
+                <div>
+                  <h3 className="fw-bold mb-0">{stats.totalCart}</h3>
+                  <p className="text-muted mb-0 small">Cart Items</p>
+                </div>
               </div>
-              <h2 className="fw-bold mb-1">{stats.totalCart}</h2>
-              <p className="text-muted mb-0">Cart Items</p>
             </Card.Body>
           </Card>
+        </Col>
+      </Row>
+
+      {/* Quick Actions */}
+      <Row className="g-3 g-md-4 mb-4">
+        <Col xs={6} md={3}>
+          <Link to="/products" className="text-decoration-none">
+            <Card className="border-0 shadow-sm h-100 quick-action-card">
+              <Card.Body className="text-center p-4">
+                <div className="mb-2"><FaShoppingBag className="text-primary" size={28} /></div>
+                <h6 className="fw-bold mb-0">Browse Products</h6>
+              </Card.Body>
+            </Card>
+          </Link>
+        </Col>
+        <Col xs={6} md={3}>
+          <Link to="/wishlist" className="text-decoration-none">
+            <Card className="border-0 shadow-sm h-100 quick-action-card">
+              <Card.Body className="text-center p-4">
+                <div className="mb-2"><FiHeart className="text-danger" size={28} /></div>
+                <h6 className="fw-bold mb-0">My Wishlist</h6>
+              </Card.Body>
+            </Card>
+          </Link>
+        </Col>
+        <Col xs={6} md={3}>
+          <Link to="/cart" className="text-decoration-none">
+            <Card className="border-0 shadow-sm h-100 quick-action-card">
+              <Card.Body className="text-center p-4">
+                <div className="mb-2"><FiShoppingCart className="text-success" size={28} /></div>
+                <h6 className="fw-bold mb-0">Shopping Cart</h6>
+              </Card.Body>
+            </Card>
+          </Link>
+        </Col>
+        <Col xs={6} md={3}>
+          <Link to="/orders" className="text-decoration-none">
+            <Card className="border-0 shadow-sm h-100 quick-action-card">
+              <Card.Body className="text-center p-4">
+                <div className="mb-2"><FaClipboardList className="text-warning" size={28} /></div>
+                <h6 className="fw-bold mb-0">Track Orders</h6>
+              </Card.Body>
+            </Card>
+          </Link>
         </Col>
       </Row>
 
@@ -144,43 +220,73 @@ export default function Dashboard() {
             <Button variant="outline-primary" size="sm">View All</Button>
           </Link>
         </Card.Header>
-        <Card.Body>
+        <Card.Body className="p-0">
           {recentOrders.length === 0 ? (
-            <p className="text-center text-muted py-4">No orders yet</p>
+            <div className="text-center py-5">
+              <FaClipboardList size={48} className="text-muted mb-3" />
+              <h5 className="fw-bold mb-2">No orders yet</h5>
+              <p className="text-muted mb-3">Looks like you haven't placed any orders yet.</p>
+              <Link to="/products">
+                <Button variant="primary">Start Shopping</Button>
+              </Link>
+            </div>
           ) : (
-            <Table responsive hover className="mb-0">
-              <thead>
-                <tr>
-                  <th>Order ID</th>
-                  <th>Date</th>
-                  <th>Items</th>
-                  <th>Total</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentOrders.map(order => (
-                  <tr key={order.id}>
-                    <td><strong>{order.orderId || order.id.slice(-6)}</strong></td>
-                    <td>
-                      <small className="text-muted">{formatDate(order.createdAt)}</small>
-                    </td>
-                    <td>
-                      <small>{order.items?.length || 0} item(s)</small>
-                    </td>
-                    <td><strong>₹{order.total?.toLocaleString('en-IN') || 0}</strong></td>
-                    <td>
-                      <Badge bg={statusColor[order.status] || 'secondary'}>
-                        {order.status || 'Processing'}
-                      </Badge>
-                    </td>
+            <div className="table-responsive">
+              <Table hover className="mb-0 align-middle">
+                <thead className="table-light">
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Date</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </Table>
+                </thead>
+                <tbody>
+                  {recentOrders.map(order => (
+                    <tr key={order.id}>
+                      <td><strong>{order.orderId || order.id.slice(-6)}</strong></td>
+                      <td>
+                        <small className="text-muted">{formatDate(order.createdAt)}</small>
+                      </td>
+                      <td>
+                        <small>{order.items?.length || 0} item(s)</small>
+                      </td>
+                      <td><strong>₹{order.total?.toLocaleString('en-IN') || 0}</strong></td>
+                      <td>
+                        <Badge bg={statusColor[order.status] || 'secondary'} className="px-3 py-2">
+                          {order.status || 'Processing'}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
           )}
         </Card.Body>
       </Card>
+
+      <style>{`
+        .stat-card {
+          transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+        }
+        .quick-action-card {
+          transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .quick-action-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+          border-color: #880e4f !important;
+        }
+        .quick-action-card:hover h6 {
+          color: #880e4f;
+        }
+      `}</style>
     </div>
   );
 }
