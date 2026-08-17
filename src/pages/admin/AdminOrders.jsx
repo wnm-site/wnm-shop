@@ -127,81 +127,81 @@ export default function AdminOrders() {
 
       {/* Stats Cards */}
       <Row className="g-3 mb-4">
-        <Col md={2} sm={4} xs={6}>
-          <Card className="border-0 shadow-sm text-center">
-            <Card.Body className="py-3">
+        <Col md={3} sm={6} xs={6}>
+          <Card className="border-0 shadow-sm h-100">
+            <Card.Body className="text-center p-3">
               <h4 className="mb-0 text-primary">{stats.total}</h4>
-              <small className="text-muted">Total</small>
+              <small className="text-muted">Total Orders</small>
             </Card.Body>
           </Card>
         </Col>
-        <Col md={2} sm={4} xs={6}>
-          <Card className="border-0 shadow-sm text-center">
-            <Card.Body className="py-3">
+        <Col md={3} sm={6} xs={6}>
+          <Card className="border-0 shadow-sm h-100">
+            <Card.Body className="text-center p-3">
               <h4 className="mb-0 text-warning">{stats.pending}</h4>
               <small className="text-muted">Pending</small>
             </Card.Body>
           </Card>
         </Col>
-        <Col md={2} sm={4} xs={6}>
-          <Card className="border-0 shadow-sm text-center">
-            <Card.Body className="py-3">
+        <Col md={3} sm={6} xs={6}>
+          <Card className="border-0 shadow-sm h-100">
+            <Card.Body className="text-center p-3">
               <h4 className="mb-0 text-info">{stats.processing}</h4>
               <small className="text-muted">Processing</small>
             </Card.Body>
           </Card>
         </Col>
-        <Col md={2} sm={4} xs={6}>
-          <Card className="border-0 shadow-sm text-center">
-            <Card.Body className="py-3">
+        <Col md={3} sm={6} xs={6}>
+          <Card className="border-0 shadow-sm h-100">
+            <Card.Body className="text-center p-3">
               <h4 className="mb-0 text-primary">{stats.shipped}</h4>
               <small className="text-muted">Shipped</small>
             </Card.Body>
           </Card>
         </Col>
-        <Col md={2} sm={4} xs={6}>
-          <Card className="border-0 shadow-sm text-center">
-            <Card.Body className="py-3">
+        <Col md={3} sm={6} xs={6}>
+          <Card className="border-0 shadow-sm h-100">
+            <Card.Body className="text-center p-3">
+              <h4 className="mb-0 text-success">{stats.outForDelivery}</h4>
+              <small className="text-muted">Out for Delivery</small>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={3} sm={6} xs={6}>
+          <Card className="border-0 shadow-sm h-100">
+            <Card.Body className="text-center p-3">
               <h4 className="mb-0 text-success">{stats.delivered}</h4>
               <small className="text-muted">Delivered</small>
             </Card.Body>
           </Card>
         </Col>
-        <Col md={2} sm={4} xs={6}>
-          <Card className="border-0 shadow-sm text-center">
-            <Card.Body className="py-3">
+        <Col md={3} sm={6} xs={6}>
+          <Card className="border-0 shadow-sm h-100">
+            <Card.Body className="text-center p-3">
               <h4 className="mb-0 text-success">{stats.completed}</h4>
               <small className="text-muted">Completed</small>
             </Card.Body>
           </Card>
         </Col>
-        <Col md={2} sm={4} xs={6}>
-          <Card className="border-0 shadow-sm text-center">
-            <Card.Body className="py-3">
-              <h4 className="mb-0 text-primary">{stats.outForDelivery}</h4>
-              <small className="text-muted">Out for Delivery</small>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={2} sm={4} xs={6}>
-          <Card className="border-0 shadow-sm text-center">
-            <Card.Body className="py-3">
+        <Col md={3} sm={6} xs={6}>
+          <Card className="border-0 shadow-sm h-100">
+            <Card.Body className="text-center p-3">
               <h4 className="mb-0 text-info">{stats.refundDone}</h4>
               <small className="text-muted">Refund Done</small>
             </Card.Body>
           </Card>
         </Col>
-        <Col md={2} sm={4} xs={6}>
-          <Card className="border-0 shadow-sm text-center">
-            <Card.Body className="py-3">
+        <Col md={3} sm={6} xs={6}>
+          <Card className="border-0 shadow-sm h-100">
+            <Card.Body className="text-center p-3">
               <h4 className="mb-0 text-warning">{stats.returnOrder}</h4>
               <small className="text-muted">Return Order</small>
             </Card.Body>
           </Card>
         </Col>
-        <Col md={2} sm={4} xs={6}>
-          <Card className="border-0 shadow-sm text-center">
-            <Card.Body className="py-3">
+        <Col md={3} sm={6} xs={6}>
+          <Card className="border-0 shadow-sm h-100">
+            <Card.Body className="text-center p-3">
               <h4 className="mb-0 text-danger">₹{(stats.revenue/1000).toFixed(1)}K</h4>
               <small className="text-muted">Revenue</small>
             </Card.Body>
@@ -220,7 +220,7 @@ export default function AdminOrders() {
             >
               All ({orders.length})
             </Button>
-             {['Pending', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Completed', 'Refund Done', 'Return Order', 'Cancelled'].map(s => (
+            {['Pending', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Completed', 'Refund Done', 'Return Order', 'Cancelled'].map(s => (
               <Button
                 key={s}
                 variant={filterStatus === s ? statusColor[s] : `outline-${statusColor[s]}`}
