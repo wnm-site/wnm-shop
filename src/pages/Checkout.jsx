@@ -42,7 +42,8 @@ export default function Checkout() {
   }, []);
 
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
-  const shipping = subtotal > 999 ? 0 : 99;
+  const hasFreeShipping = items.some(i => i.freeShipping);
+  const shipping = hasFreeShipping ? 0 : (subtotal > 999 ? 0 : 99);
   const total = subtotal - discount + shipping;
 
   const validateCoupon = async () => {
@@ -157,7 +158,8 @@ export default function Checkout() {
     }
 
     const cartSubtotal = cartItems.reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.qty) || 0), 0);
-    const cartShipping = cartSubtotal > 999 ? 0 : 99;
+    const cartHasFreeShipping = cartItems.some(i => i.freeShipping);
+    const cartShipping = cartHasFreeShipping ? 0 : (cartSubtotal > 999 ? 0 : 99);
     const cartDiscount = discount;
     const cartTotal = cartSubtotal - cartDiscount + cartShipping;
 
@@ -218,7 +220,7 @@ export default function Checkout() {
       const totalAmount = Math.round(total * 100); // Razorpay expects amount in paise
       
       const options = {
-        key: 'rzp_test_TPMQCJNb1YoA7y',
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: totalAmount,
         currency: 'INR',
         name: 'Wear NXT Mode',
@@ -450,7 +452,7 @@ export default function Checkout() {
             </div>
           )}
           <h4 className="mt-3">Total: <span className="text-danger">₹{total.toLocaleString('en-IN')}</span></h4>
-          {subtotal < 999 && (
+          {!hasFreeShipping && subtotal < 999 && (
             <small className="text-muted">Add ₹{(999 - subtotal).toLocaleString('en-IN')} more for free shipping!</small>
           )}
         </Card>

@@ -54,18 +54,17 @@ export default function Navbar() {
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
       <div className="container">
-
-<Link 
-  className="navbar-brand" 
-  to="/" 
-  style={{ lineHeight: 0, padding: 0 }}
->
-  <img
-    src="https://i.ibb.co/4Z2GCxV9/logo-full-removebg-preview.png"
-    alt="Wear NXT"
-    style={{ height: '42px', maxHeight: '42px', width: 'auto', maxWidth: '100%', display: 'block' }}
-  />
-</Link>
+        <Link 
+          className="navbar-brand" 
+          to="/" 
+          style={{ lineHeight: 0, padding: 0 }}
+        >
+          <img
+            src="https://i.ibb.co/4Z2GCxV9/logo-full-removebg-preview.png"
+            alt="Wear NXT"
+            style={{ height: '42px', maxHeight: '42px', width: 'auto', maxWidth: '100%', display: 'block' }}
+          />
+        </Link>
 
         <button
           className="navbar-toggler border-0"
@@ -80,16 +79,16 @@ export default function Navbar() {
         <div className={`collapse navbar-collapse ${mobileMenuOpen ? 'show' : ''}`} id="navbarNav">
           <ul className="navbar-nav mx-auto">
             <li className="nav-item">
-              <Link className="nav-link px-3" to="/">Home</Link>
+              <Link className="nav-link px-3" to="/" onClick={() => setMobileMenuOpen(false)}>Home</Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link px-3" to="/products">Collection</Link>
+              <Link className="nav-link px-3" to="/products" onClick={() => setMobileMenuOpen(false)}>Collection</Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link px-3" to="/#about">About</Link>
+              <Link className="nav-link px-3" to="/#about" onClick={() => setMobileMenuOpen(false)}>About</Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link px-3" to="/#contact">Contact</Link>
+              <Link className="nav-link px-3" to="/#contact" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
             </li>
 
             {userData?.isAdmin && (
@@ -106,12 +105,12 @@ export default function Navbar() {
                   <FiShield className="me-1" /> Admin
                 </a>
                 <ul className="dropdown-menu" aria-labelledby="adminDropdown">
-                  <li><Link className="dropdown-item" to="/admin">Dashboard</Link></li>
-                  <li><Link className="dropdown-item" to="/admin/products">Products</Link></li>
-                  <li><Link className="dropdown-item" to="/admin/orders">Orders</Link></li>
-                   <li><Link className="dropdown-item" to="/admin/users">Users</Link></li>
-                   <li><Link className="dropdown-item" to="/admin/reviews">Reviews</Link></li>
-                   <li><Link className="dropdown-item" to="/admin/coupons">Coupons</Link></li>
+                  <li><Link className="dropdown-item" to="/admin" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link></li>
+                  <li><Link className="dropdown-item" to="/admin/products" onClick={() => setMobileMenuOpen(false)}>Products</Link></li>
+                  <li><Link className="dropdown-item" to="/admin/orders" onClick={() => setMobileMenuOpen(false)}>Orders</Link></li>
+                  <li><Link className="dropdown-item" to="/admin/users" onClick={() => setMobileMenuOpen(false)}>Users</Link></li>
+                  <li><Link className="dropdown-item" to="/admin/reviews" onClick={() => setMobileMenuOpen(false)}>Reviews</Link></li>
+                  <li><Link className="dropdown-item" to="/admin/coupons" onClick={() => setMobileMenuOpen(false)}>Coupons</Link></li>
                 </ul>
               </li>
             )}
@@ -120,8 +119,8 @@ export default function Navbar() {
           <ul className="navbar-nav align-items-center">
             {user ? (
               <>
-                <li className="nav-item me-3">
-                  <Link className="nav-link position-relative" to="/wishlist">
+                <li className="nav-item me-3 d-none d-lg-block">
+                  <Link className="nav-link position-relative" to="/wishlist" onClick={() => setMobileMenuOpen(false)}>
                     <FiHeart size={22} />
                     {wishlistCount > 0 && (
                       <Badge
@@ -135,8 +134,8 @@ export default function Navbar() {
                   </Link>
                 </li>
 
-                <li className="nav-item me-3">
-                  <Link className="nav-link position-relative" to="/cart">
+                <li className="nav-item me-3 d-none d-lg-block">
+                  <Link className="nav-link position-relative" to="/cart" onClick={() => setMobileMenuOpen(false)}>
                     <FiShoppingCart size={22} />
                     {cartCount > 0 && (
                       <Badge
@@ -150,8 +149,8 @@ export default function Navbar() {
                   </Link>
                 </li>
 
-                {/* User Dropdown using React-Bootstrap */}
-                <li className="nav-item">
+                {/* Desktop User Dropdown */}
+                <li className="nav-item d-none d-lg-block">
                   <Dropdown align="end">
                     <Dropdown.Toggle 
                       variant="link" 
@@ -165,7 +164,7 @@ export default function Navbar() {
                       >
                         {displayName.charAt(0).toUpperCase()}
                       </div>
-                      <span className="d-none d-lg-inline">{displayName}</span>
+                      <span>{displayName}</span>
                     </Dropdown.Toggle>
 
                     <Dropdown.Menu className="shadow-lg" style={{ minWidth: '250px' }}>
@@ -184,22 +183,22 @@ export default function Navbar() {
                         </div>
                       </div>
                       
-                       <Dropdown.Item as={Link} to="/dashboard">
-                         <FiHome className="me-2" /> Dashboard
-                       </Dropdown.Item>
-                       <Dropdown.Item as={Link} to="/profile">
-                         <FiUser className="me-2" /> My Profile
-                       </Dropdown.Item>
-                       <Dropdown.Item as={Link} to="/orders">
-                         <FiPackage className="me-2" /> My Orders
-                       </Dropdown.Item>
-                       <Dropdown.Item as={Link} to="/track-order">
-                         <FiSearch className="me-2" /> Track Order
-                       </Dropdown.Item>
-                      <Dropdown.Item as={Link} to="/wishlist">
+                      <Dropdown.Item as={Link} to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                        <FiHome className="me-2" /> Dashboard
+                      </Dropdown.Item>
+                      <Dropdown.Item as={Link} to="/profile" onClick={() => setMobileMenuOpen(false)}>
+                        <FiUser className="me-2" /> My Profile
+                      </Dropdown.Item>
+                      <Dropdown.Item as={Link} to="/orders" onClick={() => setMobileMenuOpen(false)}>
+                        <FiPackage className="me-2" /> My Orders
+                      </Dropdown.Item>
+                      <Dropdown.Item as={Link} to="/track-order" onClick={() => setMobileMenuOpen(false)}>
+                        <FiSearch className="me-2" /> Track Order
+                      </Dropdown.Item>
+                      <Dropdown.Item as={Link} to="/wishlist" onClick={() => setMobileMenuOpen(false)}>
                         <FiHeart className="me-2" /> Wishlist
                       </Dropdown.Item>
-                      <Dropdown.Item as={Link} to="/cart">
+                      <Dropdown.Item as={Link} to="/cart" onClick={() => setMobileMenuOpen(false)}>
                         <FiShoppingCart className="me-2" /> Shopping Cart
                       </Dropdown.Item>
                       
@@ -219,21 +218,76 @@ export default function Navbar() {
                     </Dropdown.Menu>
                   </Dropdown>
                 </li>
+
+                {/* Mobile User Menu */}
+                <li className="nav-item d-lg-none mt-2 border-top pt-2">
+                  <div className="px-3 mb-2">
+                    <div className="d-flex align-items-center gap-2">
+                      <div
+                        className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
+                        style={{ width: '36px', height: '36px', fontSize: '15px' }}
+                      >
+                        {displayName.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <div className="fw-bold small">{displayName}</div>
+                        <small className="text-muted">{user.email}</small>
+                      </div>
+                    </div>
+                  </div>
+                  <Link className="nav-link d-flex align-items-center gap-2 px-3 py-2" to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                    <FiHome /> Dashboard
+                  </Link>
+                  <Link className="nav-link d-flex align-items-center gap-2 px-3 py-2" to="/profile" onClick={() => setMobileMenuOpen(false)}>
+                    <FiUser /> My Profile
+                  </Link>
+                  <Link className="nav-link d-flex align-items-center gap-2 px-3 py-2" to="/orders" onClick={() => setMobileMenuOpen(false)}>
+                    <FiPackage /> My Orders
+                  </Link>
+                  <Link className="nav-link d-flex align-items-center gap-2 px-3 py-2" to="/track-order" onClick={() => setMobileMenuOpen(false)}>
+                    <FiSearch /> Track Order
+                  </Link>
+                  <Link className="nav-link d-flex align-items-center gap-2 px-3 py-2" to="/wishlist" onClick={() => setMobileMenuOpen(false)}>
+                    <FiHeart /> Wishlist {wishlistCount > 0 && <Badge bg="danger" className="ms-1">{wishlistCount}</Badge>}
+                  </Link>
+                  <Link className="nav-link d-flex align-items-center gap-2 px-3 py-2" to="/cart" onClick={() => setMobileMenuOpen(false)}>
+                    <FiShoppingCart /> Cart {cartCount > 0 && <Badge bg="danger" className="ms-1">{cartCount}</Badge>}
+                  </Link>
+                  {userData?.isAdmin && (
+                    <Link className="nav-link d-flex align-items-center gap-2 px-3 py-2 text-warning" to="/admin" onClick={() => setMobileMenuOpen(false)}>
+                      <FiShield /> Admin Panel
+                    </Link>
+                  )}
+                  <button className="nav-link text-danger d-flex align-items-center gap-2 px-3 py-2 border-0 bg-transparent" onClick={handleLogout}>
+                    <FiLogOut /> Logout
+                  </button>
+                </li>
               </>
             ) : (
               <>
-                <li className="nav-item me-2">
-                  <Link className="btn btn-outline-dark btn-sm px-3" to="/login">
+                <li className="nav-item d-none d-lg-block me-2">
+                  <Link className="btn btn-outline-dark btn-sm px-3" to="/login" onClick={() => setMobileMenuOpen(false)}>
                     <FiUser className="me-1" /> Login
                   </Link>
                 </li>
-                <li className="nav-item">
+                <li className="nav-item d-none d-lg-block">
                   <Link
                     className="btn btn-sm px-3 text-white"
                     to="/register"
+                    onClick={() => setMobileMenuOpen(false)}
                     style={{ backgroundColor: '#c2185b', borderColor: '#c2185b' }}
                   >
                     Register
+                  </Link>
+                </li>
+
+                {/* Mobile Login/Register */}
+                <li className="nav-item d-lg-none mt-2 border-top pt-2">
+                  <Link className="nav-link d-flex align-items-center gap-2 px-3 py-2" to="/login" onClick={() => setMobileMenuOpen(false)}>
+                    <FiUser /> Login
+                  </Link>
+                  <Link className="nav-link d-flex align-items-center gap-2 px-3 py-2" to="/register" onClick={() => setMobileMenuOpen(false)}>
+                    <FiUser /> Register
                   </Link>
                 </li>
               </>
@@ -241,38 +295,6 @@ export default function Navbar() {
           </ul>
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="d-lg-none border-top mt-2 pt-2">
-          <div className="container">
-            <ul className="navbar-nav flex-column">
-              <li className="nav-item"><Link className="nav-link" to="/" onClick={() => setMobileMenuOpen(false)}>Home</Link></li>
-              <li className="nav-item"><Link className="nav-link" to="/products" onClick={() => setMobileMenuOpen(false)}>Collection</Link></li>
-              {user && (
-                <>
-                  <li className="nav-item"><Link className="nav-link" to="/dashboard" onClick={() => setMobileMenuOpen(false)}>🏠 Dashboard</Link></li>
-                  <li className="nav-item"><Link className="nav-link" to="/profile" onClick={() => setMobileMenuOpen(false)}>👤 My Profile</Link></li>
-                  <li className="nav-item"><Link className="nav-link" to="/orders" onClick={() => setMobileMenuOpen(false)}>📦 My Orders</Link></li>
-                  <li className="nav-item"><Link className="nav-link" to="/track-order" onClick={() => setMobileMenuOpen(false)}>🔍 Track Order</Link></li>
-                  <li className="nav-item"><Link className="nav-link" to="/wishlist" onClick={() => setMobileMenuOpen(false)}>❤️ Wishlist {wishlistCount > 0 && `(${wishlistCount})`}</Link></li>
-                  <li className="nav-item"><Link className="nav-link" to="/cart" onClick={() => setMobileMenuOpen(false)}>🛒 Cart {cartCount > 0 && `(${cartCount})`}</Link></li>
-                  {userData?.isAdmin && (
-                    <li className="nav-item"><Link className="nav-link text-warning" to="/admin" onClick={() => setMobileMenuOpen(false)}>🛡️ Admin Panel</Link></li>
-                  )}
-                  <li className="nav-item"><button className="btn btn-link nav-link text-danger" onClick={handleLogout}>🚪 Logout</button></li>
-                </>
-              )}
-              {!user && (
-                <>
-                  <li className="nav-item"><Link className="nav-link" to="/login" onClick={() => setMobileMenuOpen(false)}>Login</Link></li>
-                  <li className="nav-item"><Link className="nav-link" to="/register" onClick={() => setMobileMenuOpen(false)}>Register</Link></li>
-                </>
-              )}
-            </ul>
-          </div>
-        </div>
-      )}
     </nav>
   );
 }

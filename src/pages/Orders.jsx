@@ -36,7 +36,11 @@ export default function Orders() {
     'Pending': 'warning',
     'Processing': 'info',
     'Shipped': 'primary',
+    'Out for Delivery': 'primary',
     'Delivered': 'success',
+    'Completed': 'success',
+    'Refund Done': 'info',
+    'Return Order': 'warning',
     'Cancelled': 'danger'
   };
 
@@ -44,7 +48,11 @@ export default function Orders() {
     'Pending': '⏳',
     'Processing': '🔄',
     'Shipped': '🚚',
+    'Out for Delivery': '📍',
     'Delivered': '✅',
+    'Completed': '🎉',
+    'Refund Done': '💸',
+    'Return Order': '↩️',
     'Cancelled': '❌'
   };
 

@@ -79,7 +79,11 @@ export default function AdminOrders() {
     'Pending': 'warning',
     'Processing': 'info',
     'Shipped': 'primary',
+    'Out for Delivery': 'primary',
     'Delivered': 'success',
+    'Completed': 'success',
+    'Refund Done': 'info',
+    'Return Order': 'warning',
     'Cancelled': 'danger'
   };
 
@@ -94,10 +98,14 @@ export default function AdminOrders() {
     pending: orders.filter(o => o.status === 'Pending').length,
     processing: orders.filter(o => o.status === 'Processing').length,
     shipped: orders.filter(o => o.status === 'Shipped').length,
+    outForDelivery: orders.filter(o => o.status === 'Out for Delivery').length,
     delivered: orders.filter(o => o.status === 'Delivered').length,
+    completed: orders.filter(o => o.status === 'Completed').length,
+    refundDone: orders.filter(o => o.status === 'Refund Done').length,
+    returnOrder: orders.filter(o => o.status === 'Return Order').length,
     cancelled: orders.filter(o => o.status === 'Cancelled').length,
     revenue: orders
-      .filter(o => o.status !== 'Cancelled')
+      .filter(o => o.status !== 'Cancelled' && o.status !== 'Return Order' && o.status !== 'Refund Done')
       .reduce((sum, o) => sum + (o.total || 0), 0)
   };
 
@@ -162,6 +170,38 @@ export default function AdminOrders() {
         <Col md={2} sm={4} xs={6}>
           <Card className="border-0 shadow-sm text-center">
             <Card.Body className="py-3">
+              <h4 className="mb-0 text-success">{stats.completed}</h4>
+              <small className="text-muted">Completed</small>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={2} sm={4} xs={6}>
+          <Card className="border-0 shadow-sm text-center">
+            <Card.Body className="py-3">
+              <h4 className="mb-0 text-primary">{stats.outForDelivery}</h4>
+              <small className="text-muted">Out for Delivery</small>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={2} sm={4} xs={6}>
+          <Card className="border-0 shadow-sm text-center">
+            <Card.Body className="py-3">
+              <h4 className="mb-0 text-info">{stats.refundDone}</h4>
+              <small className="text-muted">Refund Done</small>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={2} sm={4} xs={6}>
+          <Card className="border-0 shadow-sm text-center">
+            <Card.Body className="py-3">
+              <h4 className="mb-0 text-warning">{stats.returnOrder}</h4>
+              <small className="text-muted">Return Order</small>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={2} sm={4} xs={6}>
+          <Card className="border-0 shadow-sm text-center">
+            <Card.Body className="py-3">
               <h4 className="mb-0 text-danger">₹{(stats.revenue/1000).toFixed(1)}K</h4>
               <small className="text-muted">Revenue</small>
             </Card.Body>
@@ -180,7 +220,7 @@ export default function AdminOrders() {
             >
               All ({orders.length})
             </Button>
-            {['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'].map(s => (
+             {['Pending', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Completed', 'Refund Done', 'Return Order', 'Cancelled'].map(s => (
               <Button
                 key={s}
                 variant={filterStatus === s ? statusColor[s] : `outline-${statusColor[s]}`}
@@ -357,11 +397,15 @@ export default function AdminOrders() {
                   onChange={e => setStatus(e.target.value)}
                   size="lg"
                 >
-                  <option value="Pending">⏳ Pending</option>
-                  <option value="Processing">🔄 Processing</option>
-                  <option value="Shipped">🚚 Shipped</option>
-                  <option value="Delivered">✅ Delivered</option>
-                  <option value="Cancelled">❌ Cancelled</option>
+                   <option value="Pending">⏳ Pending</option>
+                   <option value="Processing">🔄 Processing</option>
+                   <option value="Shipped">🚚 Shipped</option>
+                   <option value="Out for Delivery">📍 Out for Delivery</option>
+                   <option value="Delivered">✅ Delivered</option>
+                   <option value="Completed">🎉 Completed</option>
+                   <option value="Refund Done">💸 Refund Done</option>
+                   <option value="Return Order">↩️ Return Order</option>
+                   <option value="Cancelled">❌ Cancelled</option>
                 </Form.Select>
               </Form.Group>
 

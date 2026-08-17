@@ -94,13 +94,18 @@ export default function OrderDetails() {
     'Pending': 'warning',
     'Processing': 'info',
     'Shipped': 'primary',
+    'Out for Delivery': 'primary',
     'Delivered': 'success',
+    'Completed': 'success',
+    'Refund Done': 'info',
+    'Return Order': 'warning',
     'Cancelled': 'danger'
   };
 
-  const statusSteps = ['Pending', 'Processing', 'Shipped', 'Delivered'];
+  const statusSteps = ['Pending', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Completed'];
   const currentStepIndex = statusSteps.indexOf(order.status);
   const isCancelled = order.status === 'Cancelled';
+  const isReturnOrRefund = ['Return Order', 'Refund Done'].includes(order.status);
 
   return (
     <div className="container py-4">
@@ -140,6 +145,22 @@ export default function OrderDetails() {
               {order.cancelledAt?.seconds && (
                 <small>
                   Cancelled on: {new Date(order.cancelledAt.seconds * 1000).toLocaleString('en-IN')}
+                </small>
+              )}
+            </Alert>
+          ) : isReturnOrRefund ? (
+            <Alert variant={order.status === 'Refund Done' ? 'info' : 'warning'} className="mb-0">
+              <h6 className="alert-heading">
+                {order.status === 'Refund Done' ? '💸 Refund Processed' : '↩️ Return Order'}
+              </h6>
+              <p className="mb-0">
+                {order.status === 'Refund Done' 
+                  ? 'The refund has been processed successfully.' 
+                  : 'This order has been marked for return.'}
+              </p>
+              {order.statusUpdatedAt?.seconds && (
+                <small>
+                  Updated on: {new Date(order.statusUpdatedAt.seconds * 1000).toLocaleString('en-IN')}
                 </small>
               )}
             </Alert>
@@ -349,20 +370,24 @@ export default function OrderDetails() {
             Total: ₹{order.total?.toLocaleString('en-IN')}
           </Alert>
 
-          <Form.Group>
-            <Form.Label className="fw-bold">Select New Status</Form.Label>
-            <Form.Select 
-              value={newStatus} 
-              onChange={e => setNewStatus(e.target.value)}
-              size="lg"
-            >
-              <option value="Pending">⏳ Pending</option>
-              <option value="Processing">🔄 Processing</option>
-              <option value="Shipped">🚚 Shipped</option>
-              <option value="Delivered">✅ Delivered</option>
-              <option value="Cancelled">❌ Cancelled</option>
-            </Form.Select>
-          </Form.Group>
+              <Form.Group>
+                <Form.Label className="fw-bold">Select New Status</Form.Label>
+                <Form.Select 
+                  value={newStatus} 
+                  onChange={e => setNewStatus(e.target.value)}
+                  size="lg"
+                >
+                  <option value="Pending">⏳ Pending</option>
+                  <option value="Processing">🔄 Processing</option>
+                  <option value="Shipped">🚚 Shipped</option>
+                  <option value="Out for Delivery">📍 Out for Delivery</option>
+                  <option value="Delivered">✅ Delivered</option>
+                  <option value="Completed">🎉 Completed</option>
+                  <option value="Refund Done">💸 Refund Done</option>
+                  <option value="Return Order">↩️ Return Order</option>
+                  <option value="Cancelled">❌ Cancelled</option>
+                </Form.Select>
+              </Form.Group>
 
           <div className="mt-3">
             <small className="text-muted">

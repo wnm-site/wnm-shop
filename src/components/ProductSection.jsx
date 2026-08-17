@@ -4,7 +4,7 @@ import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { Row, Col, Spinner, Button, Card } from 'react-bootstrap';
 import { FiShoppingCart, FiHeart, FiZap } from 'react-icons/fi';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { getProductImageSrc } from '../utils/imageHelper';
 
@@ -176,7 +176,7 @@ export default function ProductSection() {
           <>
             {/* Products Grid */}
             <Row xs={1} sm={2} lg={3} xl={4} className="g-4">
-              {products.map(product => {
+              {products.slice(0, 9).map(product => {
                 const discount = product.oldPrice 
                   ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
                   : 0;
@@ -336,19 +336,21 @@ export default function ProductSection() {
 
             {/* View All Button */}
             <div className="text-center mt-5">
-              <Button 
-                variant="outline-dark" 
-                size="lg" 
-                className="px-5 rounded-pill fw-semibold"
-                style={{ 
-                  borderColor: '#d4af37',
-                  color: '#880e4f',
-                  padding: '0.75rem 2.5rem',
-                  transition: 'all 0.3s ease'
-                }}
-              >
-                View All Products →
-              </Button>
+              <Link to="/products">
+                <Button 
+                  variant="outline-dark" 
+                  size="lg" 
+                  className="px-5 rounded-pill fw-semibold text-decoration-none"
+                  style={{ 
+                    borderColor: '#d4af37',
+                    color: '#880e4f',
+                    padding: '0.75rem 2.5rem',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  View All Products →
+                </Button>
+              </Link>
             </div>
           </>
         )}

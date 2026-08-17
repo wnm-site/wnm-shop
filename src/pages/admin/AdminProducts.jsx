@@ -39,7 +39,8 @@ export default function AdminProducts() {
     images: [],  // Array of base64 images
     sizes: [],   // Array of selected sizes
     colors: [],  // Array of selected colors
-    category: 'Casual'
+    category: 'Casual',
+    freeShipping: false
   });
   const [previews, setPreviews] = useState([]);
   const [customColor, setCustomColor] = useState({ name: '', code: '#000000' });
@@ -178,6 +179,7 @@ export default function AdminProducts() {
         sizes: form.sizes,
         colors: form.colors,
         category: form.category,
+        freeShipping: form.freeShipping || false,
         updatedAt: new Date()
       };
 
@@ -221,7 +223,8 @@ export default function AdminProducts() {
       ...product,
       images: product.images || [],
       sizes: product.sizes || [],
-      colors: product.colors || []
+      colors: product.colors || [],
+      freeShipping: product.freeShipping || false
     });
     setEditId(product.id);
     setPreviews(product.images || []);
@@ -239,7 +242,8 @@ export default function AdminProducts() {
       images: [],
       sizes: [],
       colors: [],
-      category: 'Casual'
+      category: 'Casual',
+      freeShipping: false
     });
     setPreviews([]);
     setEditId(null);
@@ -290,6 +294,11 @@ export default function AdminProducts() {
                   <Badge bg="warning" className="position-absolute top-0 start-0 m-2">
                     {product.category}
                   </Badge>
+                  {product.freeShipping && (
+                    <Badge bg="success" className="position-absolute top-0 end-0 m-2">
+                      Free Shipping
+                    </Badge>
+                  )}
                   {product.images?.length > 1 && (
                     <Badge bg="dark" className="position-absolute top-0 end-0 m-2">
                       {product.images.length} images
@@ -466,6 +475,18 @@ export default function AdminProducts() {
                     <option value="Bridal">Bridal</option>
                     <option value="Formal">Formal</option>
                   </Form.Select>
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label className="fw-bold">Shipping</Form.Label>
+                  <Form.Check
+                    type="switch"
+                    id="free-shipping"
+                    label="Free Shipping"
+                    checked={form.freeShipping}
+                    onChange={(e) => setForm({ ...form, freeShipping: e.target.checked })}
+                    disabled={processing}
+                  />
                 </Form.Group>
 
                 <Row>
