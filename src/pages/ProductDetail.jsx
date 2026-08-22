@@ -146,8 +146,8 @@ export default function ProductDetail() {
                 <Spinner animation="border" variant="primary" />
               </div>
             )}
-            <img
-              src={mainImage}
+             <img
+              src={images[currentImageIndex]}
               alt={product.name}
               onLoad={() => setImageLoaded(true)}
               onError={(e) => {
@@ -454,7 +454,7 @@ export default function ProductDetail() {
           )}
 
           <img
-            src={mainImage}
+            src={images[currentImageIndex]}
             alt={product.name}
             onClick={(e) => e.stopPropagation()}
             onError={(e) => { e.target.src = 'https://via.placeholder.com/600x600?text=No+Image'; }}

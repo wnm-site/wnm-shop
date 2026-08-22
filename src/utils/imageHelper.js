@@ -2,33 +2,51 @@
 export const compressImage = (file, maxWidth = 800, quality = 0.7) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    
+    const timeout = setTimeout(() => reject(new Error(`Timeout: ${file.name} took too long to process`)), 30000);
+
     reader.onload = (e) => {
       const img = new Image();
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
+        try {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
 
-        if (width > maxWidth) {
-          height = (height * maxWidth) / width;
-          width = maxWidth;
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            clearTimeout(timeout);
+            return reject(new Error(`Failed to get canvas context for: ${file.name}`));
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const base64 = canvas.toDataURL('image/jpeg', quality);
+          clearTimeout(timeout);
+          resolve(base64);
+        } catch (error) {
+          clearTimeout(timeout);
+          reject(new Error(`Failed to compress image: ${file.name}. ${error.message}`));
         }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-
-        const base64 = canvas.toDataURL('image/jpeg', quality);
-        resolve(base64);
       };
-      img.onerror = () => reject(new Error(`Failed to load image: ${file.name}. The file may be corrupted or not a valid image.`));
+      img.onerror = () => {
+        clearTimeout(timeout);
+        reject(new Error(`Failed to load image: ${file.name}. The file may be corrupted or not a valid image.`));
+      };
       img.src = e.target.result;
     };
-    
-    reader.onerror = () => reject(new Error(`Failed to read file: ${file.name}`));
+
+    reader.onerror = () => {
+      clearTimeout(timeout);
+      reject(new Error(`Failed to read file: ${file.name}`));
+    };
     reader.readAsDataURL(file);
   });
 };

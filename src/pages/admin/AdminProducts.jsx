@@ -7,7 +7,7 @@ import { FaBox } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { compressMultipleImages, isBase64TooLarge, getProductImageSrc } from '../../utils/imageHelper';
 
-const AVAILABLE_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+const AVAILABLE_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
 const AVAILABLE_COLORS = [
   { name: 'Black', code: '#000000' },
   { name: 'White', code: '#FFFFFF' },
