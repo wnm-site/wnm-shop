@@ -107,3 +107,15 @@ export const getProductImages = (product) => {
   }
   return [PLACEHOLDER];
 };
+
+export const getColorImage = (product, colorName) => {
+  if (!product || !colorName) return null;
+  const colors = product.colors;
+  if (Array.isArray(colors)) {
+    const color = colors.find(c => c && c.name === colorName);
+    if (color && typeof color.image === 'string' && color.image.trim() !== '') {
+      return color.image;
+    }
+  }
+  return null;
+};

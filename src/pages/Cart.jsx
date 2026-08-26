@@ -6,7 +6,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Table, Button, Spinner, Card, Badge } from 'react-bootstrap';
 import { FiTrash2, FiMinus, FiPlus, FiShoppingBag } from 'react-icons/fi';
 import toast from 'react-hot-toast';
-import { getProductImageSrc } from '../utils/imageHelper';
+import { getProductImageSrc, getColorImage } from '../utils/imageHelper';
 
 export default function Cart() {
   const { user } = useAuth();
@@ -115,7 +115,13 @@ export default function Cart() {
                         <tr key={`${item.id || item.name}-${idx}`}>
                           <td className="ps-4">
                             <div className="d-flex align-items-center gap-3">
-                              <img src={getProductImageSrc(item)} alt={item.name} style={{ width: '52px', height: '52px', objectFit: 'cover' }} className="rounded" onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/52x52?text=No+Image'; }} />
+                              <img 
+                                src={item.color?.image || getProductImageSrc(item)} 
+                                alt={item.name} 
+                                style={{ width: '52px', height: '52px', objectFit: 'cover' }} 
+                                className="rounded" 
+                                onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/52x52?text=No+Image'; }} 
+                              />
                               <div className="fw-semibold">{item.name}</div>
                             </div>
                           </td>
@@ -156,7 +162,13 @@ export default function Cart() {
                 <Card key={`${item.id || item.name}-${idx}`} className="border-0 shadow-sm mb-3">
                   <Card.Body className="p-3">
                     <div className="d-flex gap-3">
-                      <img src={getProductImageSrc(item)} alt={item.name} style={{ width: '72px', height: '72px', objectFit: 'cover', flexShrink: 0 }} className="rounded" onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/72x72?text=No+Image'; }} />
+                      <img 
+                        src={item.color?.image || getProductImageSrc(item)} 
+                        alt={item.name} 
+                        style={{ width: '72px', height: '72px', objectFit: 'cover', flexShrink: 0 }} 
+                        className="rounded" 
+                        onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/72x72?text=No+Image'; }} 
+                      />
                       <div className="flex-grow-1" style={{ minWidth: 0 }}>
                         <div className="d-flex justify-content-between align-items-start gap-2">
                           <h6 className="fw-bold mb-1 text-truncate">{item.name}</h6>

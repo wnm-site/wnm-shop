@@ -7,7 +7,7 @@ import { Row, Col, Button, Form, Spinner, ListGroup, Badge } from 'react-bootstr
 import { FiMinus, FiPlus, FiShoppingCart, FiZap, FiArrowLeft, FiStar, FiZoomIn } from 'react-icons/fi';
 import { FaWhatsapp, FaFacebook, FaTwitter, FaTelegram, FaLink } from 'react-icons/fa';
 import toast from 'react-hot-toast';
-import { getProductImages, getProductImageSrc } from '../utils/imageHelper';
+import { getProductImages, getProductImageSrc, getColorImage } from '../utils/imageHelper';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -23,6 +23,31 @@ export default function ProductDetail() {
   const [rating, setRating] = useState(5);
   const [showFullImage, setShowFullImage] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+
+  const images = product ? getProductImages(product) : [];
+
+  const handleColorSelect = (color) => {
+    setSelectedColor(color);
+    if (color?.image) {
+      const idx = images.findIndex(img => img === color.image);
+      if (idx >= 0) {
+        setCurrentImageIndex(idx);
+      }
+    } else {
+      setCurrentImageIndex(0);
+    }
+  };
+
+  useEffect(() => {
+    if (!product) return;
+    const colorImg = getColorImage(product, selectedColor?.name);
+    if (colorImg) {
+      const idx = images.findIndex(img => img === colorImg);
+      if (idx >= 0) setCurrentImageIndex(idx);
+    } else {
+      setCurrentImageIndex(0);
+    }
+  }, [product, selectedColor?.name]);
 
   useEffect(() => {
     (async () => {
@@ -65,7 +90,7 @@ export default function ProductDetail() {
             qty, 
             size: selectedSize,
             color: selectedColor,
-            image: product.images?.[0] || product.image
+            image: selectedColor?.image || product.images?.[0] || product.image
           }) 
         }, { merge: true });
       }
@@ -111,9 +136,6 @@ export default function ProductDetail() {
   const shareText = `Check out ${product?.name} for ₹${product?.price}!`;
 
   if (!product) return <div className="text-center mt-5"><Spinner /></div>;
-
-  const images = getProductImages(product);
-  const mainImage = getProductImageSrc(product);
 
   return (
     <>
@@ -335,7 +357,7 @@ export default function ProductDetail() {
                     key={color.name}
                     variant={selectedColor?.name === color.name ? 'primary' : 'outline-secondary'}
                     size="sm"
-                    onClick={() => setSelectedColor(color)}
+                    onClick={() => handleColorSelect(color)}
                     className="d-flex align-items-center gap-2"
                   >
                     <span

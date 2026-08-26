@@ -38,7 +38,7 @@ export default function AdminProducts() {
     reviews: 0,
     images: [],  // Array of base64 images
     sizes: [],   // Array of selected sizes
-    colors: [],  // Array of selected colors
+    colors: [],  // Array of selected colors with optional image
     category: 'Casual',
     freeShipping: false
   });
@@ -120,10 +120,13 @@ export default function AdminProducts() {
 
   // Handle Color Selection
   const toggleColor = (color) => {
-    const colors = form.colors.find(c => c.name === color.name)
-      ? form.colors.filter(c => c.name !== color.name)
-      : [...form.colors, color];
-    setForm({ ...form, colors });
+    const exists = form.colors.find(c => c.name === color.name);
+    if (exists) {
+      const colors = form.colors.filter(c => c.name !== color.name);
+      setForm({ ...form, colors });
+    } else {
+      setForm({ ...form, colors: [...form.colors, { ...color, image: '' }] });
+    }
   };
 
   const addCustomColor = () => {
@@ -135,12 +138,46 @@ export default function AdminProducts() {
       toast.error('Color already added');
       return;
     }
-    setForm({ ...form, colors: [...form.colors, customColor] });
+    setForm({ ...form, colors: [...form.colors, { ...customColor, image: '' }] });
     setCustomColor({ name: '', code: '#000000' });
   };
 
   const removeColor = (colorName) => {
     setForm({ ...form, colors: form.colors.filter(c => c.name !== colorName) });
+  };
+
+  const handleColorImageChange = async (colorName, files) => {
+    const file = files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    setProcessing(true);
+    try {
+      const compressed = await compressMultipleImages([file], 400, 0.6);
+      const base64 = compressed[0];
+
+      const colors = form.colors.map(c => 
+        c.name === colorName ? { ...c, image: base64 } : c
+      );
+      setForm({ ...form, colors });
+      toast.success('Color image uploaded! 🎨');
+    } catch (error) {
+      console.error('Color image error:', error);
+      toast.error('Failed to upload color image');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const removeColorImage = (colorName) => {
+    const colors = form.colors.map(c => 
+      c.name === colorName ? { ...c, image: '' } : c
+    );
+    setForm({ ...form, colors });
   };
 
   const handleSubmit = async (e) => {
@@ -266,7 +303,7 @@ export default function AdminProducts() {
       </div>
 
       <Alert variant="info">
-        💡 <strong>Features:</strong> Multiple images, size selection, color selection with custom colors
+        💡 <strong>Features:</strong> Multiple images, size selection, color selection with custom colors, free shipping
       </Alert>
 
       {products.length === 0 ? (
@@ -319,28 +356,9 @@ export default function AdminProducts() {
                     {product.sizes?.length > 3 && (
                       <Badge bg="light" text="dark">+{product.sizes.length - 3}</Badge>
                     )}
-                  </div>
+                   </div>
 
-                  <div className="mb-2">
-                    <small className="text-muted">Colors: </small>
-                    {product.colors?.slice(0, 4).map(c => (
-                      <span
-                        key={c.name}
-                        title={c.name}
-                        style={{
-                          display: 'inline-block',
-                          width: '20px',
-                          height: '20px',
-                          backgroundColor: c.code,
-                          borderRadius: '50%',
-                          border: '2px solid #ddd',
-                          marginRight: '4px'
-                        }}
-                      />
-                    ))}
-                  </div>
-
-                  <div className="mb-3">
+                   <div className="mb-3">
                     <strong className="text-danger fs-5">₹{product.price?.toLocaleString('en-IN')}</strong>
                     {product.oldPrice > 0 && (
                       <small className="text-muted text-decoration-line-through ms-2">
@@ -449,6 +467,160 @@ export default function AdminProducts() {
                 </Form.Group>
               </Col>
 
+              {/* Colors Section */}
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label className="fw-bold">Available Colors *</Form.Label>
+                 
+                  {/* Selected Colors Display */}
+                  {form.colors.length > 0 && (
+                    <div className="mb-3 p-2 bg-light rounded">
+                      <small className="text-muted d-block mb-2">Selected Colors:</small>
+                      <div className="d-flex flex-wrap gap-3">
+                        {form.colors.map(color => (
+                          <div key={color.name} className="text-center">
+                            <div
+                              style={{
+                                width: '40px',
+                                height: '40px',
+                                backgroundColor: color.code,
+                                borderRadius: '50%',
+                                border: '2px solid #ddd',
+                                margin: '0 auto 4px'
+                              }}
+                            />
+                            <div className="small fw-bold">{color.name}</div>
+                            
+                            {/* Color Image Upload */}
+                            <div className="mt-1">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="d-none"
+                                id={`color-img-${color.name.replace(/\s+/g, '-').toLowerCase()}`}
+                                onChange={(e) => handleColorImageChange(color.name, e.target.files)}
+                                disabled={processing}
+                              />
+                              <label 
+                                htmlFor={`color-img-${color.name.replace(/\s+/g, '-').toLowerCase()}`}
+                                className="btn btn-sm btn-outline-primary p-1"
+                                style={{ cursor: 'pointer', fontSize: '0.7rem' }}
+                                title="Upload color image"
+                              >
+                                {color.image ? '🖼️' : '📷'}
+                              </label>
+                              {color.image && (
+                                <Button
+                                  variant="outline-danger"
+                                  size="sm"
+                                  className="p-1 ms-1"
+                                  style={{ fontSize: '0.7rem' }}
+                                  onClick={() => removeColorImage(color.name)}
+                                  title="Remove color image"
+                                >
+                                  ✕
+                                </Button>
+                              )}
+                            </div>
+
+                            {/* Color Image Preview */}
+                            {color.image && (
+                              <div className="mt-1">
+                                <img
+                                  src={color.image}
+                                  alt={color.name}
+                                  style={{
+                                    width: '50px',
+                                    height: '50px',
+                                    objectFit: 'cover',
+                                    borderRadius: '4px',
+                                    border: '1px solid #ddd'
+                                  }}
+                                />
+                              </div>
+                            )}
+
+                            {/* Remove Color Button */}
+                            <Button
+                              variant="outline-danger"
+                              size="sm"
+                              className="mt-1 p-0"
+                              style={{ 
+                                width: '20px', 
+                                height: '20px', 
+                                borderRadius: '50%', 
+                                fontSize: '10px',
+                                lineHeight: '1'
+                              }}
+                              onClick={() => removeColor(color.name)}
+                              title="Remove color"
+                            >
+                              ✕
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Predefined Colors */}
+                  <div className="d-flex flex-wrap gap-2 mb-3">
+                    {AVAILABLE_COLORS.map(color => (
+                      <Button
+                        key={color.name}
+                        variant={form.colors.find(c => c.name === color.name) ? 'primary' : 'outline-secondary'}
+                        size="sm"
+                        onClick={() => toggleColor(color)}
+                        disabled={processing}
+                        className="d-flex align-items-center gap-2"
+                      >
+                        <span
+                          style={{
+                            width: '16px',
+                            height: '16px',
+                            backgroundColor: color.code,
+                            borderRadius: '50%',
+                            border: '1px solid #ccc'
+                          }}
+                        />
+                        {color.name}
+                      </Button>
+                    ))}
+                  </div>
+
+                  {/* Custom Color */}
+                  <div className="d-flex gap-2 align-items-end">
+                    <div className="flex-grow-1">
+                      <Form.Label className="small">Custom Color Name</Form.Label>
+                      <Form.Control
+                        type="text"
+                        placeholder="e.g., Navy Blue"
+                        value={customColor.name}
+                        onChange={e => setCustomColor({ ...customColor, name: e.target.value })}
+                        disabled={processing}
+                      />
+                    </div>
+                    <div>
+                      <Form.Label className="small">Color</Form.Label>
+                      <Form.Control
+                        type="color"
+                        value={customColor.code}
+                        onChange={e => setCustomColor({ ...customColor, code: e.target.value })}
+                        disabled={processing}
+                        style={{ width: '60px', height: '38px' }}
+                      />
+                    </div>
+                    <Button
+                      variant="success"
+                      onClick={addCustomColor}
+                      disabled={processing}
+                    >
+                      <FiPlus /> Add
+                    </Button>
+                  </div>
+                </Form.Group>
+              </Col>
+
               {/* Details Section */}
               <Col md={6}>
                 <Form.Group className="mb-3">
@@ -547,101 +719,6 @@ export default function AdminProducts() {
                 </Row>
               </Col>
             </Row>
-
-            {/* Colors Section */}
-            <Form.Group className="mb-3">
-              <Form.Label className="fw-bold">Available Colors *</Form.Label>
-              
-              {/* Selected Colors Display */}
-              {form.colors.length > 0 && (
-                <div className="mb-3 p-2 bg-light rounded">
-                  <small className="text-muted d-block mb-2">Selected Colors:</small>
-                  <div className="d-flex flex-wrap gap-2">
-                    {form.colors.map(color => (
-                      <Badge
-                        key={color.name}
-                        bg="light"
-                        text="dark"
-                        className="d-flex align-items-center gap-2 px-3 py-2"
-                        style={{ border: '2px solid #ddd' }}
-                      >
-                        <span
-                          style={{
-                            width: '20px',
-                            height: '20px',
-                            backgroundColor: color.code,
-                            borderRadius: '50%',
-                            border: '1px solid #ccc'
-                          }}
-                        />
-                        {color.name}
-                        <FiX
-                          className="ms-2"
-                          style={{ cursor: 'pointer' }}
-                          onClick={() => removeColor(color.name)}
-                        />
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Predefined Colors */}
-              <div className="d-flex flex-wrap gap-2 mb-3">
-                {AVAILABLE_COLORS.map(color => (
-                  <Button
-                    key={color.name}
-                    variant={form.colors.find(c => c.name === color.name) ? 'primary' : 'outline-secondary'}
-                    size="sm"
-                    onClick={() => toggleColor(color)}
-                    disabled={processing}
-                    className="d-flex align-items-center gap-2"
-                  >
-                    <span
-                      style={{
-                        width: '16px',
-                        height: '16px',
-                        backgroundColor: color.code,
-                        borderRadius: '50%',
-                        border: '1px solid #ccc'
-                      }}
-                    />
-                    {color.name}
-                  </Button>
-                ))}
-              </div>
-
-              {/* Custom Color */}
-              <div className="d-flex gap-2 align-items-end">
-                <div className="flex-grow-1">
-                  <Form.Label className="small">Custom Color Name</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder="e.g., Navy Blue"
-                    value={customColor.name}
-                    onChange={e => setCustomColor({ ...customColor, name: e.target.value })}
-                    disabled={processing}
-                  />
-                </div>
-                <div>
-                  <Form.Label className="small">Color</Form.Label>
-                  <Form.Control
-                    type="color"
-                    value={customColor.code}
-                    onChange={e => setCustomColor({ ...customColor, code: e.target.value })}
-                    disabled={processing}
-                    style={{ width: '60px', height: '38px' }}
-                  />
-                </div>
-                <Button
-                  variant="success"
-                  onClick={addCustomColor}
-                  disabled={processing}
-                >
-                  <FiPlus /> Add
-                </Button>
-              </div>
-            </Form.Group>
 
             <Form.Group className="mb-3">
               <Form.Label className="fw-bold">Description *</Form.Label>
