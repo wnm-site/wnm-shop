@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
-import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { useState, useEffect } from 'react';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { Table, Button, Modal, Form, Spinner, Card, Row, Col, Badge, Alert } from 'react-bootstrap';
+import { Form, Modal, Button, Spinner, Row, Col, Alert, Card, Badge } from 'react-bootstrap';
 import { FiPlus, FiEdit2, FiTrash2, FiUpload, FiImage, FiStar, FiX } from 'react-icons/fi';
 import { FaBox } from 'react-icons/fa';
 import toast from 'react-hot-toast';
-import { compressMultipleImages, isBase64TooLarge, getProductImageSrc } from '../../utils/imageHelper';
+import { compressMultipleImages, getProductImageSrc } from '../../utils/imageHelper';
 
 const AVAILABLE_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
 const AVAILABLE_COLORS = [
@@ -44,6 +44,7 @@ export default function AdminProducts() {
   });
   const [previews, setPreviews] = useState([]);
   const [customColor, setCustomColor] = useState({ name: '', code: '#000000' });
+  const [customSize, setCustomSize] = useState('');
 
   const loadProducts = async () => {
     try {
@@ -86,14 +87,14 @@ export default function AdminProducts() {
     try {
       // Show previews
       const newPreviews = files.map(file => URL.createObjectURL(file));
-      setPreviews([...previews, ...newPreviews]);
+      setPreviews(prev => [...prev, ...newPreviews]);
 
       toast.loading(`Compressing ${files.length} image(s)...`, { id: 'img' });
       
       // Compress all images
       const compressedImages = await compressMultipleImages(files, 600, 0.6);
       
-      setForm({ ...form, images: [...form.images, ...compressedImages] });
+      setForm(prev => ({ ...prev, images: [...prev.images, ...compressedImages] }));
       toast.success(`✅ ${compressedImages.length} image(s) ready!`, { id: 'img' });
     } catch (error) {
       console.error(error);
@@ -104,10 +105,11 @@ export default function AdminProducts() {
   };
 
   const removeImage = (index) => {
-    const newImages = form.images.filter((_, i) => i !== index);
-    const newPreviews = previews.filter((_, i) => i !== index);
-    setForm({ ...form, images: newImages });
-    setPreviews(newPreviews);
+    if (previews[index] && previews[index].startsWith('blob:')) {
+      URL.revokeObjectURL(previews[index]);
+    }
+    setForm(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }));
+    setPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   // Handle Size Selection
@@ -115,17 +117,33 @@ export default function AdminProducts() {
     const sizes = form.sizes.includes(size)
       ? form.sizes.filter(s => s !== size)
       : [...form.sizes, size];
-    setForm({ ...form, sizes });
+    setForm(prev => ({ ...prev, sizes }));
+  };
+
+  const addCustomSize = () => {
+    if (!customSize.trim()) {
+      toast.error('Please enter size');
+      return;
+    }
+    if (form.sizes.find(s => s.toLowerCase() === customSize.trim().toLowerCase())) {
+      toast.error('Size already added');
+      return;
+    }
+    setForm(prev => ({ ...prev, sizes: [...prev.sizes, customSize.trim()] }));
+    setCustomSize('');
+  };
+
+  const removeSize = (sizeName) => {
+    setForm(prev => ({ ...prev, sizes: prev.sizes.filter(s => s !== sizeName) }));
   };
 
   // Handle Color Selection
   const toggleColor = (color) => {
     const exists = form.colors.find(c => c.name === color.name);
     if (exists) {
-      const colors = form.colors.filter(c => c.name !== color.name);
-      setForm({ ...form, colors });
+      setForm(prev => ({ ...prev, colors: prev.colors.filter(c => c.name !== color.name) }));
     } else {
-      setForm({ ...form, colors: [...form.colors, { ...color, image: '' }] });
+      setForm(prev => ({ ...prev, colors: [...prev.colors, { ...color, image: '' }] }));
     }
   };
 
@@ -138,12 +156,12 @@ export default function AdminProducts() {
       toast.error('Color already added');
       return;
     }
-    setForm({ ...form, colors: [...form.colors, { ...customColor, image: '' }] });
+    setForm(prev => ({ ...prev, colors: [...prev.colors, { ...customColor, image: '' }] }));
     setCustomColor({ name: '', code: '#000000' });
   };
 
   const removeColor = (colorName) => {
-    setForm({ ...form, colors: form.colors.filter(c => c.name !== colorName) });
+    setForm(prev => ({ ...prev, colors: prev.colors.filter(c => c.name !== colorName) }));
   };
 
   const handleColorImageChange = async (colorName, files) => {
@@ -160,10 +178,9 @@ export default function AdminProducts() {
       const compressed = await compressMultipleImages([file], 400, 0.6);
       const base64 = compressed[0];
 
-      const colors = form.colors.map(c => 
+      setForm(prev => ({ ...prev, colors: prev.colors.map(c => 
         c.name === colorName ? { ...c, image: base64 } : c
-      );
-      setForm({ ...form, colors });
+      ) }));
       toast.success('Color image uploaded! 🎨');
     } catch (error) {
       console.error('Color image error:', error);
@@ -174,10 +191,9 @@ export default function AdminProducts() {
   };
 
   const removeColorImage = (colorName) => {
-    const colors = form.colors.map(c => 
+    setForm(prev => ({ ...prev, colors: prev.colors.map(c => 
       c.name === colorName ? { ...c, image: '' } : c
-    );
-    setForm({ ...form, colors });
+    ) }));
   };
 
   const handleSubmit = async (e) => {
@@ -284,6 +300,8 @@ export default function AdminProducts() {
     });
     setPreviews([]);
     setEditId(null);
+    setCustomSize('');
+    setCustomColor({ name: '', code: '#000000' });
   };
 
   if (loading) {
@@ -337,7 +355,7 @@ export default function AdminProducts() {
                     </Badge>
                   )}
                   {product.images?.length > 1 && (
-                    <Badge bg="dark" className="position-absolute top-0 end-0 m-2">
+                    <Badge bg="dark" className="position-absolute bottom-0 end-0 m-2">
                       {product.images.length} images
                     </Badge>
                   )}
@@ -447,7 +465,34 @@ export default function AdminProducts() {
                 {/* Sizes Section */}
                 <Form.Group className="mb-3">
                   <Form.Label className="fw-bold">Available Sizes *</Form.Label>
-                  <div className="d-flex flex-wrap gap-2">
+
+                  {/* Selected Sizes Display */}
+                  {form.sizes.length > 0 && (
+                    <div className="mb-3 p-2 bg-light rounded">
+                      <small className="text-muted d-block mb-2">Selected Sizes:</small>
+                      <div className="d-flex flex-wrap gap-2">
+                        {form.sizes.map(size => (
+                          <Badge
+                            key={size}
+                            bg="light"
+                            text="dark"
+                            className="d-flex align-items-center gap-2 px-3 py-2"
+                            style={{ border: '2px solid #ddd' }}
+                          >
+                            {size}
+                            <FiX
+                              className="ms-2"
+                              style={{ cursor: 'pointer' }}
+                              onClick={() => removeSize(size)}
+                            />
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Predefined Sizes */}
+                  <div className="d-flex flex-wrap gap-2 mb-3">
                     {AVAILABLE_SIZES.map(size => (
                       <Form.Check
                         key={size}
@@ -461,6 +506,28 @@ export default function AdminProducts() {
                       />
                     ))}
                   </div>
+
+                  {/* Custom Size */}
+                  <div className="d-flex gap-2 align-items-end">
+                    <div className="flex-grow-1">
+                      <Form.Label className="small">Custom Size</Form.Label>
+                      <Form.Control
+                        type="text"
+                        placeholder="e.g., 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60"
+                        value={customSize}
+                        onChange={e => setCustomSize(e.target.value)}
+                        disabled={processing}
+                      />
+                    </div>
+                    <Button
+                      variant="success"
+                      onClick={addCustomSize}
+                      disabled={processing}
+                    >
+                      <FiPlus /> Add
+                    </Button>
+                  </div>
+
                   <Form.Text className="text-muted">
                     Selected: {form.sizes.length > 0 ? form.sizes.join(', ') : 'None'}
                   </Form.Text>
