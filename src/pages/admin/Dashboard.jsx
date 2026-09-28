@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { Card, Row, Col, Button, Table, Badge } from 'react-bootstrap';
+import { Card, Row, Col, Button, Table, Badge, Form, Alert } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { FiBox, FiUsers, FiShoppingBag, FiDollarSign, FiTrendingUp, FiPlus } from 'react-icons/fi';
 import { FaBoxOpen, FaUserFriends, FaClipboardList, FaRupeeSign } from 'react-icons/fa';
+import toast from 'react-hot-toast';
 
 export default function Dashboard() {
   const [stats, setStats] = useState({ products: 0, users: 0, orders: 0, revenue: 0 });
@@ -31,7 +32,7 @@ export default function Dashboard() {
         .slice(0, 5);
 
       setStats({
-        products: productsSnap.size,
+        products: productsSnap.docs.filter(d => !d.id.includes('siteSettings')).length,
         users: usersSnap.size,
         orders: ordersSnap.size,
         revenue
@@ -52,15 +53,38 @@ export default function Dashboard() {
     'Cancelled': 'danger'
   };
 
-  if (loading) {
-    return (
-      <div className="text-center py-5">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    );
-  }
+  const [popupSettings, setPopupSettings] = useState({ enabled: false, imageUrl: '', linkUrl: '' });
+  const [savingPopup, setSavingPopup] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const snap = await getDoc(doc(db, 'products', 'siteSettings_homePopup'));
+        if (snap.exists()) setPopupSettings(snap.data());
+      } catch (error) {
+        console.error('Popup settings load error:', error);
+      }
+    })();
+  }, []);
+
+  const handleSavePopup = async (e) => {
+    e.preventDefault();
+    setSavingPopup(true);
+    try {
+      await setDoc(doc(db, 'products', 'siteSettings_homePopup'), {
+        enabled: Boolean(popupSettings.enabled),
+        imageUrl: String(popupSettings.imageUrl || ''),
+        linkUrl: String(popupSettings.linkUrl || '')
+      });
+      toast.success('Popup settings updated');
+    } catch (error) {
+      console.error('Popup save error:', error);
+      toast.error('Failed to update popup');
+    } finally {
+      setSavingPopup(false);
+    }
+  };
+
 
   return (
     <div>
@@ -111,6 +135,51 @@ export default function Dashboard() {
           </Card>
         </Col>
       </Row>
+
+      {/* Home Popup Settings */}
+      <Card className="border-0 shadow-sm mb-5">
+        <Card.Header className="bg-white border-bottom">
+          <h5 className="mb-0 fw-bold">Home Popup Settings</h5>
+        </Card.Header>
+        <Card.Body>
+          <Form onSubmit={handleSavePopup}>
+            <Row className="g-3">
+              <Col md={12}>
+                <Form.Check
+                  type="switch"
+                  id="popupEnabled"
+                  label="Enable popup for visitors"
+                  checked={popupSettings.enabled}
+                  onChange={(e) => setPopupSettings({ ...popupSettings, enabled: e.target.checked })}
+                />
+              </Col>
+              <Col md={12}>
+                <Form.Label>Image URL</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={popupSettings.imageUrl}
+                  onChange={(e) => setPopupSettings({ ...popupSettings, imageUrl: e.target.value })}
+                  placeholder="https://i.ibb.co/..."
+                />
+              </Col>
+              <Col md={12}>
+                <Form.Label>Link URL</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={popupSettings.linkUrl}
+                  onChange={(e) => setPopupSettings({ ...popupSettings, linkUrl: e.target.value })}
+                  placeholder="https://..."
+                />
+              </Col>
+              <Col md={12}>
+                <Button type="submit" disabled={savingPopup}>
+                  {savingPopup ? 'Saving...' : 'Save Popup Settings'}
+                </Button>
+              </Col>
+            </Row>
+          </Form>
+        </Card.Body>
+      </Card>
 
       {/* Recent Orders */}
       <Card className="border-0 shadow-sm">

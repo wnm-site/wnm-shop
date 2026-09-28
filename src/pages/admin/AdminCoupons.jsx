@@ -30,7 +30,7 @@ export default function AdminCoupons() {
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'coupons'), (snap) => {
-      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(c => c.id !== 'siteSettings_homePopup');
       setCoupons(data);
       setLoading(false);
     }, (error) => {

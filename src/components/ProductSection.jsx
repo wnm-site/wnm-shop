@@ -21,7 +21,7 @@ export default function ProductSection() {
       try {
         const snap = await getDocs(collection(db, 'products'));
         if (isMounted) {
-          const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          const data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => !p.id.includes('siteSettings'));
           setProducts(data);
         }
       } catch (error) {
@@ -112,7 +112,7 @@ export default function ProductSection() {
       try {
         const snap = await getDocs(collection(db, 'products'));
         if (isMounted) {
-          const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          const data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => !p.id.includes('siteSettings'));
           setProducts(data);
         }
       } catch (error) {

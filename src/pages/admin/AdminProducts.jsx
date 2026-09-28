@@ -49,7 +49,7 @@ export default function AdminProducts() {
   const loadProducts = async () => {
     try {
       const snap = await getDocs(collection(db, 'products'));
-      setProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => !p.id.includes('siteSettings')));
     } catch (error) {
       toast.error('Failed to load products');
       console.error(error);
